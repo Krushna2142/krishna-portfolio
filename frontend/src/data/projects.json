@@ -1,0 +1,26 @@
+[
+  {
+    "title": "Intelligent Workflow Automation",
+    "description": "Visual no-code platform to automate APIs, emails, Slack, DB using workflows.",
+    "technologies": ["React", "Node.js", "MongoDB", "BullMQ"],
+    "image": "/images/workflow.png",
+    "github": "https://github.com/Krushna2142/intelligent-workflow-automation",
+    "live": "https://workflow-platform.vercel.app"
+  },
+  {
+    "title": "AI Resume Screener",
+    "description": "Built a GPT-powered resume screener for HRs to rank applicants instantly.",
+    "technologies": ["Next.js", "OpenAI", "Tailwind"],
+    "image": "/images/resume-ai.png",
+    "github": "https://github.com/Krushna2142/resume-screener",
+    "live": "https://resumeai.vercel.app"
+  },
+  {
+    "title": "College ERP System",
+    "description": "Created an ERP portal for college with attendance, marks, and login system.",
+    "technologies": ["MERN", "JWT", "MongoDB"],
+    "image": "/images/college-erp.png",
+    "github": "https://github.com/Krushna2142/college-erp",
+    "live": "https://collegeerp.vercel.app"
+  }
+]
