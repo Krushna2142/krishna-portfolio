@@ -1,85 +1,52 @@
-import { useState } from "react";
-import { toast } from "react-toastify";
+// src/pages/Contact.jsx
+
+import { FaPhoneAlt, FaEnvelope, FaGithub, FaLinkedin } from 'react-icons/fa';
 
 const Contact = () => {
-  const [formData, setFormData] = useState({ name: "", email: "", message: "" });
-  const [loading, setLoading] = useState(false);
-
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-
-    try {
-      const res = await fetch("https://krishna-portfolio-peach-one.vercel.app/contact", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
-
-      const data = await res.json();
-
-      if (data.success) {
-        toast.success("Message sent successfully!");
-        setFormData({ name: "", email: "", message: "" });
-      } else {
-        toast.error(data.error || "Something went wrong.");
-      }
-    } catch (err) {
-      console.error("Error submitting message:", err);
-      toast.error("Failed to send message. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 bg-gray-100">
-      <form onSubmit={handleSubmit} className="bg-white p-8 rounded shadow-md w-full max-w-md">
-        <h2 className="text-2xl font-bold mb-4 text-center">Contact Me</h2>
+    <div className="min-h-screen bg-gradient-to-br from-white via-blue-50 to-blue-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 text-gray-800 dark:text-white flex items-center justify-center px-4">
+      <div className="max-w-3xl w-full text-center">
+        <h1 className="text-4xl md:text-5xl font-bold mb-6">Get in Touch</h1>
+        <p className="text-lg md:text-xl mb-10 text-gray-600 dark:text-gray-300">
+          I’m always open to collaboration, opportunities, or just a good tech conversation. Reach out to me through any of the platforms below!
+        </p>
 
-        <input
-          name="name"
-          value={formData.name}
-          onChange={handleChange}
-          placeholder="Your Name"
-          className="mb-4 w-full p-2 border rounded"
-          required
-        />
+        <div className="space-y-6 text-lg">
+          <div className="flex items-center justify-center gap-3">
+            <FaPhoneAlt className="text-blue-600 dark:text-blue-400" />
+            <span>+91 98765 43210</span>
+          </div>
 
-        <input
-          name="email"
-          value={formData.email}
-          onChange={handleChange}
-          placeholder="Your Email"
-          className="mb-4 w-full p-2 border rounded"
-          type="email"
-          required
-        />
+          <div className="flex items-center justify-center gap-3">
+            <FaEnvelope className="text-red-600 dark:text-red-400" />
+            <span>krushna@email.com</span>
+          </div>
 
-        <textarea
-          name="message"
-          value={formData.message}
-          onChange={handleChange}
-          placeholder="Your Message"
-          className="mb-4 w-full p-2 border rounded"
-          rows="4"
-          required
-        />
+          <div className="flex items-center justify-center gap-3">
+            <FaGithub className="text-black dark:text-white" />
+            <a
+              href="https://github.com/krushnapokharkar"
+              className="hover:underline"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              github.com/krushnapokharkar
+            </a>
+          </div>
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="bg-blue-600 text-white px-4 py-2 rounded w-full hover:bg-blue-700 transition"
-        >
-          {loading ? "Sending..." : "Send Message"}
-        </button>
-      </form>
+          <div className="flex items-center justify-center gap-3">
+            <FaLinkedin className="text-blue-700 dark:text-blue-400" />
+            <a
+              href="https://linkedin.com/in/krushnapokharkar"
+              className="hover:underline"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              linkedin.com/in/krushnapokharkar
+            </a>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
