@@ -1,16 +1,11 @@
 // controllers/messageController.js
-const Message = require('../models/messageModel');
-const nodemailer = require('nodemailer');
+import Message from '../models/messageModel.js';
+import nodemailer from 'nodemailer';
 
-const sendMessage = async (req, res) => {
+// Create a new message
+export const createMessage = async (req, res) => {
   try {
     const { name, email, message } = req.body;
-
-    if (!name || !email || !message) {
-      return res.status(400).json({ success: false, error: 'All fields are required' });
-    }
-
-    // Save message to MongoDB
     const newMessage = new Message({ name, email, message });
     await newMessage.save();
 
@@ -19,55 +14,44 @@ const sendMessage = async (req, res) => {
       service: 'gmail',
       auth: {
         user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
+        pass: process.env.EMAIL_PASS
       },
     });
 
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: process.env.ADMIN_EMAIL,
-      subject: 'New Contact Message from Portfolio',
-      html: `
-        <h2>New Contact Message</h2>
-        <p><strong>Name:</strong> ${name}</p>
-        <p><strong>Email:</strong> ${email}</p>
-        <p><strong>Message:</strong> ${message}</p>
-      `,
+      subject: 'New Contact Message',
+      html: `<p><strong>Name:</strong> ${name}</p>
+             <p><strong>Email:</strong> ${email}</p>
+             <p><strong>Message:</strong><br/>${message}</p>`,
     };
 
     await transporter.sendMail(mailOptions);
 
-    res.status(200).json({ success: true, message: 'Message sent successfully' });
-
+    res.status(201).json({ success: true, message: 'Message sent successfully' });
   } catch (error) {
-    console.error('Error in sendMessage:', error);
-    res.status(500).json({ success: false, error: 'Something went wrong' });
+    res.status(500).json({ success: false, error: 'Message not sent' });
   }
 };
 
-const getAllMessages = async (req, res) => {
+// Get all messages
+export const getMessages = async (req, res) => {
   try {
     const messages = await Message.find().sort({ createdAt: -1 });
-    res.status(200).json({ success: true, messages });
+    res.json(messages);
   } catch (error) {
-    console.error('Error in getAllMessages:', error);
-    res.status(500).json({ success: false, error: 'Server error' });
+    res.status(500).json({ success: false, error: 'Failed to get messages' });
   }
 };
 
-const deleteMessage = async (req, res) => {
+// Delete a message
+export const deleteMessage = async (req, res) => {
   try {
     const { id } = req.params;
     await Message.findByIdAndDelete(id);
-    res.status(200).json({ success: true, message: 'Message deleted' });
+    res.json({ success: true, message: 'Message deleted' });
   } catch (error) {
-    console.error('Error in deleteMessage:', error);
-    res.status(500).json({ success: false, error: 'Server error' });
+    res.status(500).json({ success: false, error: 'Failed to delete message' });
   }
-};
-
-module.exports = {
-  sendMessage,
-  getAllMessages,
-  deleteMessage,
 };
