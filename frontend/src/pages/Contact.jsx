@@ -1,16 +1,13 @@
-import React, { useEffect, useState } from "react";
-import { FaPhoneAlt, FaEnvelope, FaMapMarkerAlt } from "react-icons/fa";
-import { toast } from "react-toastify";
-import AOS from "aos";
-import "aos/dist/aos.css";
-import "react-toastify/dist/ReactToastify.css";
+// src/pages/Contact.jsx
+import { useState } from 'react';
+import { toast } from 'react-toastify';
+import { FaGithub, FaLinkedin, FaEnvelope } from 'react-icons/fa';
 
 const Contact = () => {
-  const [formData, setFormData] = useState({ name: "", email: "", message: "" });
-
-  useEffect(() => {
-    AOS.init({ duration: 1000 });
-  }, []);
+  const [formData, setFormData] = useState({
+    name: '', email: '', message: ''
+  });
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -18,85 +15,92 @@ const Contact = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (!formData.name || !formData.email || !formData.message) {
-      return toast.error("Please fill in all fields.");
-    }
+    setLoading(true);
 
     try {
-      // send to your backend here if needed
-      toast.success("Message sent successfully!");
-      setFormData({ name: "", email: "", message: "" });
-    } catch (error) {
-      toast.error("Something went wrong!",error);
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/messages`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        toast.success('Message sent successfully! ✅');
+        setFormData({ name: '', email: '', message: '' });
+      } else {
+        toast.error(data.message || 'Failed to send message ❌');
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error('Something went wrong!');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white px-6 py-12 flex flex-col items-center justify-center">
-      <div className="max-w-4xl w-full" data-aos="fade-up">
-        <h2 className="text-4xl font-bold text-center mb-8 text-blue-400">Get In Touch</h2>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {/* Contact Info */}
-          <div className="space-y-6">
-            <div className="flex items-center gap-4">
-              <FaPhoneAlt className="text-blue-400 text-xl" />
-              <p className="text-lg">+91 7410796292</p>
-            </div>
-            <div className="flex items-center gap-4">
-              <FaEnvelope className="text-blue-400 text-xl" />
-              <p className="text-lg">krushnapokharkar183@gmail.com</p>
-            </div>
-            <div className="flex items-center gap-4">
-              <FaMapMarkerAlt className="text-blue-400 text-xl" />
-              <p className="text-lg">Pune, Maharashtra, India</p>
-            </div>
-
-            <div className="mt-6 flex gap-4">
-              <a href="https://github.com/Krushna2142" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-white transition duration-300">GitHub</a>
-              <a href="https://linkedin.com/in/krush" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-white transition duration-300">LinkedIn</a>
-              <a href="https://discord.com/users/krushna" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-white transition duration-300">Discord</a>
-              <a href="https://instagram.com/krushna" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-white transition duration-300">Instagram</a>
-            </div>
+    <section className="min-h-screen bg-gray-900 text-white flex items-center justify-center p-6">
+      <div className="max-w-6xl w-full grid grid-cols-1 md:grid-cols-2 gap-10">
+        
+        {/* Contact Info */}
+        <div className="space-y-6">
+          <h2 className="text-4xl font-bold text-white">Get in Touch</h2>
+          <p className="text-gray-400">
+            Feel free to contact me using the form or through the following platforms:
+          </p>
+          <div className="flex items-center gap-4 text-2xl">
+            <a href="https://github.com/YOUR_USERNAME" target="_blank" rel="noreferrer">
+              <FaGithub className="hover:text-blue-400 transition" />
+            </a>
+            <a href="https://linkedin.com/in/YOUR_USERNAME" target="_blank" rel="noreferrer">
+              <FaLinkedin className="hover:text-blue-400 transition" />
+            </a>
+            <a href="mailto:your@email.com">
+              <FaEnvelope className="hover:text-blue-400 transition" />
+            </a>
           </div>
-
-          {/* Contact Form */}
-          <form onSubmit={handleSubmit} className="bg-gray-800 rounded-2xl p-6 space-y-6 shadow-lg">
-            <input
-              type="text"
-              name="name"
-              placeholder="Your Name"
-              value={formData.name}
-              onChange={handleChange}
-              className="w-full px-4 py-3 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
-            />
-            <input
-              type="email"
-              name="email"
-              placeholder="Your Email"
-              value={formData.email}
-              onChange={handleChange}
-              className="w-full px-4 py-3 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
-            />
-            <textarea
-              name="message"
-              placeholder="Your Message"
-              value={formData.message}
-              onChange={handleChange}
-              rows="5"
-              className="w-full px-4 py-3 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
-            ></textarea>
-            <button
-              type="submit"
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition duration-300"
-            >
-              Send Message
-            </button>
-          </form>
         </div>
+
+        {/* Contact Form */}
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <input
+            type="text"
+            name="name"
+            required
+            placeholder="Your Name"
+            value={formData.name}
+            onChange={handleChange}
+            className="w-full p-3 rounded bg-gray-800 text-white border border-gray-700 focus:outline-none focus:border-blue-500"
+          />
+          <input
+            type="email"
+            name="email"
+            required
+            placeholder="Your Email"
+            value={formData.email}
+            onChange={handleChange}
+            className="w-full p-3 rounded bg-gray-800 text-white border border-gray-700 focus:outline-none focus:border-blue-500"
+          />
+          <textarea
+            name="message"
+            rows="6"
+            required
+            placeholder="Your Message"
+            value={formData.message}
+            onChange={handleChange}
+            className="w-full p-3 rounded bg-gray-800 text-white border border-gray-700 focus:outline-none focus:border-blue-500"
+          ></textarea>
+          <button
+            type="submit"
+            disabled={loading}
+            className="bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded text-white font-semibold"
+          >
+            {loading ? 'Sending...' : 'Send Message'}
+          </button>
+        </form>
       </div>
-    </div>
+    </section>
   );
 };
 
