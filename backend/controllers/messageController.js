@@ -1,20 +1,20 @@
-// controllers/messageController.js
+// backend/controllers/messageController.js
 import Message from '../models/messageModel.js';
 import nodemailer from 'nodemailer';
 
-// Create a new message
-export const createMessage = async (req, res) => {
+// Create message
+const createMessage = async (req, res) => {
   try {
     const { name, email, message } = req.body;
     const newMessage = new Message({ name, email, message });
     await newMessage.save();
 
-    // Send email notification to admin
+    // Send email to admin
     const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
         user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
+        pass: process.env.EMAIL_PASS,
       },
     });
 
@@ -35,8 +35,8 @@ export const createMessage = async (req, res) => {
   }
 };
 
-// Get all messages
-export const getMessages = async (req, res) => {
+// Get messages
+const getMessages = async (req, res) => {
   try {
     const messages = await Message.find().sort({ createdAt: -1 });
     res.json(messages);
@@ -45,8 +45,8 @@ export const getMessages = async (req, res) => {
   }
 };
 
-// Delete a message
-export const deleteMessage = async (req, res) => {
+// Delete message
+const deleteMessage = async (req, res) => {
   try {
     const { id } = req.params;
     await Message.findByIdAndDelete(id);
@@ -55,3 +55,6 @@ export const deleteMessage = async (req, res) => {
     res.status(500).json({ success: false, error: 'Failed to delete message' });
   }
 };
+
+// ✅ Named exports
+export { createMessage, getMessages, deleteMessage };
