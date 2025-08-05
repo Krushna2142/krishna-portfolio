@@ -1,19 +1,20 @@
 // controllers/messageController.js
+const Message = require('../models/messageModel');
+const nodemailer = require('nodemailer');
 
-import Message from '../models/messageModel.js';
-import nodemailer from 'nodemailer';
-
-export const createMessage = async (req, res) => {
+const sendMessage = async (req, res) => {
   try {
     const { name, email, message } = req.body;
 
     if (!name || !email || !message) {
-      return res.status(400).json({ success: false, message: 'All fields are required.' });
+      return res.status(400).json({ success: false, error: 'All fields are required' });
     }
 
-    const newMessage = await Message.create({ name, email, message });
+    // Save message to MongoDB
+    const newMessage = new Message({ name, email, message });
+    await newMessage.save();
 
-    // Nodemailer config
+    // Send email notification to admin
     const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
@@ -25,9 +26,9 @@ export const createMessage = async (req, res) => {
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: process.env.ADMIN_EMAIL,
-      subject: 'New Contact Message',
+      subject: 'New Contact Message from Portfolio',
       html: `
-        <h3>New Message from Portfolio</h3>
+        <h2>New Contact Message</h2>
         <p><strong>Name:</strong> ${name}</p>
         <p><strong>Email:</strong> ${email}</p>
         <p><strong>Message:</strong> ${message}</p>
@@ -36,30 +37,37 @@ export const createMessage = async (req, res) => {
 
     await transporter.sendMail(mailOptions);
 
-    res.status(201).json({ success: true, message: 'Message sent successfully!' });
+    res.status(200).json({ success: true, message: 'Message sent successfully' });
+
   } catch (error) {
-    console.error('Error sending message:', error.message);
-    res.status(500).json({ success: false, message: 'Something went wrong.' });
+    console.error('Error in sendMessage:', error);
+    res.status(500).json({ success: false, error: 'Something went wrong' });
   }
 };
 
-export const getMessages = async (req, res) => {
+const getAllMessages = async (req, res) => {
   try {
     const messages = await Message.find().sort({ createdAt: -1 });
-    res.status(200).json(messages);
+    res.status(200).json({ success: true, messages });
   } catch (error) {
-    res.status(500).json({ success: false, message: 'Failed to get messages' });
+    console.error('Error in getAllMessages:', error);
+    res.status(500).json({ success: false, error: 'Server error' });
   }
 };
 
-export const deleteMessage = async (req, res) => {
+const deleteMessage = async (req, res) => {
   try {
-    const message = await Message.findByIdAndDelete(req.params.id);
-    if (!message) {
-      return res.status(404).json({ success: false, message: 'Message not found' });
-    }
-    res.status(200).json({ success: true, message: 'Message deleted successfully' });
+    const { id } = req.params;
+    await Message.findByIdAndDelete(id);
+    res.status(200).json({ success: true, message: 'Message deleted' });
   } catch (error) {
-    res.status(500).json({ success: false, message: 'Error deleting message' });
+    console.error('Error in deleteMessage:', error);
+    res.status(500).json({ success: false, error: 'Server error' });
   }
+};
+
+module.exports = {
+  sendMessage,
+  getAllMessages,
+  deleteMessage,
 };
