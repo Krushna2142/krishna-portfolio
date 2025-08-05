@@ -1,8 +1,8 @@
-// src/pages/Contact.jsx
-import { useState } from 'react';
-import { toast } from 'react-toastify';
-import { FaGithub, FaLinkedin, FaEnvelope } from 'react-icons/fa';
-import axios from 'axios';
+import React, { useState } from "react";
+import axios from "axios";
+import { toast } from "react-toastify";
+import { MdEmail } from "react-icons/md";
+
 const Contact = () => {
   const [formData, setFormData] = useState({
     name: "",
@@ -50,68 +50,56 @@ const Contact = () => {
       setLoading(false);
     }
   };
+
   return (
-    <section className="min-h-screen bg-gray-900 text-white flex items-center justify-center p-6">
-      <div className="max-w-6xl w-full grid grid-cols-1 md:grid-cols-2 gap-10">
-        
-        {/* Contact Info */}
-        <div className="space-y-6">
-          <h2 className="text-4xl font-bold text-white">Get in Touch</h2>
-          <p className="text-gray-400">
-            Feel free to contact me using the form or through the following platforms:
-          </p>
-          <div className="flex items-center gap-4 text-2xl">
-            <a href="https://github.com/YOUR_USERNAME" target="_blank" rel="noreferrer">
-              <FaGithub className="hover:text-blue-400 transition" />
-            </a>
-            <a href="https://linkedin.com/in/YOUR_USERNAME" target="_blank" rel="noreferrer">
-              <FaLinkedin className="hover:text-blue-400 transition" />
-            </a>
-            <a href="mailto:your@email.com">
-              <FaEnvelope className="hover:text-blue-400 transition" />
-            </a>
-          </div>
+    <div className="min-h-screen w-full flex items-center justify-center bg-white dark:bg-gray-900 px-4 py-16">
+      <div className="w-full max-w-xl bg-gray-100 dark:bg-gray-800 rounded-xl p-8 shadow-xl">
+        <h2 className="text-3xl font-bold text-center text-gray-800 dark:text-white mb-6">
+          Contact Me
+        </h2>
+
+        <div className="flex justify-center mb-4 text-blue-600 text-3xl">
+          <MdEmail />
         </div>
 
-        {/* Contact Form */}
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-5">
           <input
             type="text"
             name="name"
-            required
             placeholder="Your Name"
+            className="w-full p-3 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none border border-gray-300 dark:border-gray-600"
             value={formData.name}
             onChange={handleChange}
-            className="w-full p-3 rounded bg-gray-800 text-white border border-gray-700 focus:outline-none focus:border-blue-500"
           />
+
           <input
             type="email"
             name="email"
-            required
             placeholder="Your Email"
+            className="w-full p-3 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none border border-gray-300 dark:border-gray-600"
             value={formData.email}
             onChange={handleChange}
-            className="w-full p-3 rounded bg-gray-800 text-white border border-gray-700 focus:outline-none focus:border-blue-500"
           />
+
           <textarea
             name="message"
-            rows="6"
-            required
             placeholder="Your Message"
+            rows="5"
+            className="w-full p-3 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none border border-gray-300 dark:border-gray-600"
             value={formData.message}
             onChange={handleChange}
-            className="w-full p-3 rounded bg-gray-800 text-white border border-gray-700 focus:outline-none focus:border-blue-500"
           ></textarea>
+
           <button
             type="submit"
             disabled={loading}
-            className="bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded text-white font-semibold"
+            className="w-full py-3 rounded bg-blue-600 hover:bg-blue-700 text-white font-semibold transition duration-300"
           >
-            {loading ? 'Sending...' : 'Send Message'}
+            {loading ? "Sending..." : "Send Message"}
           </button>
         </form>
       </div>
-    </section>
+    </div>
   );
 };
 
