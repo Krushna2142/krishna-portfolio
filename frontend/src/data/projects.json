@@ -1,6 +1,6 @@
 [
   {
-    "title": "Intelligent Workflow Automation",
+    "title": "AI-Powered Intelligent Workflow Automation Platform",
     "description": "Visual no-code platform to automate APIs, emails, Slack, DB using workflows.",
     "technologies": ["React", "Node.js", "MongoDB", "BullMQ"],
     "image": "/images/workflow.png",
@@ -8,7 +8,7 @@
     "live": "https://workflow-platform.vercel.app"
   },
   {
-    "title": "AI Resume Screener",
+    "title": "AI-Powered Resume Analyzer & Job Recommendation Platform",
     "description": "Built a GPT-powered resume screener for HRs to rank applicants instantly.",
     "technologies": ["Next.js", "OpenAI", "Tailwind"],
     "image": "/images/resume-ai.png",
@@ -16,11 +16,20 @@
     "live": "https://resumeai.vercel.app"
   },
   {
-    "title": "College ERP System",
+    "title": "AI-Powered Customer Query & Ticketing Assistant",
     "description": "Created an ERP portal for college with attendance, marks, and login system.",
     "technologies": ["MERN", "JWT", "MongoDB"],
     "image": "/images/college-erp.png",
     "github": "https://github.com/Krushna2142/college-erp",
     "live": "https://collegeerp.vercel.app"
+  },
+  {
+    "title": "PhysioTherapy Web App",
+    "description": "This was project specifically made for a physiotherapy clinic to manage patients and their appointments.",
+    "technologies": ["MERN", "JWT", "MongoDB"],
+    "image": "/images/physiotherapy.png",
+    "github": "https://github.com/Krushna2142/physiotherapy-web-app",
+    "live": "https://physiotherapy-web-app.vercel.app"
+    
   }
 ]

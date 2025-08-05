@@ -34,11 +34,11 @@ const About = () => {
         <div className="space-y-4 max-w-3xl mx-auto">
           <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow">
             <h4 className="font-bold text-cyan-600">2024 - Present</h4>
-            <p>Working on real-world projects including a Portfolio, Physio Website, and Intelligent Workflow Automation Platform.</p>
+            <p>Working on real-world projects including a Portfolio, Physio Website, AI Powered Intelligent Workflow Automation Platform, AI Powered Resume Analyzer & Job Recommendation Platform and AI Powered Customer Query & Ticketing Assistant.</p>
           </div>
           <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow">
             <h4 className="font-bold text-cyan-600">2023 - 2024</h4>
-            <p>Completed multiple freelance projects, practiced full-stack dev, and contributed to open source.</p>
+            <p>Completed multiple  projects, practiced full-stack dev, and contributed to open source.</p>
           </div>
         </div>
       </div>
