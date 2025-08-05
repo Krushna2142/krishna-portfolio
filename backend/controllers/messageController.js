@@ -1,44 +1,65 @@
-import Message from '../models/Message.js';
-import sendEmail from '../utils/sendEmail.js';
+// controllers/messageController.js
 
-export const sendMessage = async (req, res) => {
+import Message from '../models/messageModel.js';
+import nodemailer from 'nodemailer';
+
+export const createMessage = async (req, res) => {
   try {
     const { name, email, message } = req.body;
 
+    if (!name || !email || !message) {
+      return res.status(400).json({ success: false, message: 'All fields are required.' });
+    }
+
     const newMessage = await Message.create({ name, email, message });
 
-    await sendEmail({
+    // Nodemailer config
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
+
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
       to: process.env.ADMIN_EMAIL,
       subject: 'New Contact Message',
       html: `
-        <h2>New Message from ${name}</h2>
+        <h3>New Message from Portfolio</h3>
+        <p><strong>Name:</strong> ${name}</p>
         <p><strong>Email:</strong> ${email}</p>
-        <p><strong>Message:</strong><br>${message}</p>
+        <p><strong>Message:</strong> ${message}</p>
       `,
-    });
+    };
 
-    res.status(200).json({ success: true, message: 'Message sent successfully' });
-  } catch (err) {
-    console.error('Error in sendMessage:', err.message);
-    res.status(500).json({ success: false, message: 'Something went wrong' });
+    await transporter.sendMail(mailOptions);
+
+    res.status(201).json({ success: true, message: 'Message sent successfully!' });
+  } catch (error) {
+    console.error('Error sending message:', error.message);
+    res.status(500).json({ success: false, message: 'Something went wrong.' });
   }
 };
 
 export const getMessages = async (req, res) => {
   try {
     const messages = await Message.find().sort({ createdAt: -1 });
-    res.json(messages);
-  } catch (err) {
-    res.status(500).json({ message: 'Failed to fetch messages' });
+    res.status(200).json(messages);
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Failed to get messages' });
   }
 };
 
 export const deleteMessage = async (req, res) => {
   try {
-    const { id } = req.params;
-    await Message.findByIdAndDelete(id);
-    res.json({ success: true, message: 'Message deleted' });
-  } catch (err) {
-    res.status(500).json({ message: 'Error deleting message' });
+    const message = await Message.findByIdAndDelete(req.params.id);
+    if (!message) {
+      return res.status(404).json({ success: false, message: 'Message not found' });
+    }
+    res.status(200).json({ success: true, message: 'Message deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Error deleting message' });
   }
 };
