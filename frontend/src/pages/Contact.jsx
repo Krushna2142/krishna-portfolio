@@ -8,36 +8,44 @@ const Contact = () => {
     email: '',
     message: '',
   });
+
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
     setLoading(true);
 
-    try {
-      const res = await fetch('https://krishna-portfolio-1qbx.onrender.com/api/messages', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
+    const { name, email, message } = formData;
+
+    fetch('https://krishna-portfolio-1qbx.onrender.com/api/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ name, email, message }),
+    })
+      .then(res => {
+        if (!res.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return res.json();
+      })
+      .then(data => {
+        console.log('Message sent:', data);
+        toast.success('Message sent successfully!');
+        setFormData({ name: '', email: '', message: '' });
+      })
+      .catch(err => {
+        console.error('Error sending message:', err);
+        toast.error('Something went wrong while sending message');
+      })
+      .finally(() => {
+        setLoading(false);
       });
-
-      const data = await res.json();
-
-      if (!res.ok) throw new Error(data.message || 'Something went wrong');
-
-      toast.success('Message sent successfully!');
-      setFormData({ name: '', email: '', message: '' });
-    } catch (err) {
-      toast.error(err.message);
-    } finally {
-      setLoading(false);
-    }
   };
 
   return (
