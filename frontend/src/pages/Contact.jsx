@@ -33,9 +33,15 @@ const Contact = () => {
 
     try {
       const res = await axios.post(
-        `${import.meta.env.VITE_API_BASE_URL}/api/messages`,
-        formData
-      );
+  `${import.meta.env.VITE_API_BASE_URL}/api/messages`,
+  { name, email, message },
+  {
+    headers: {
+      "Content-Type": "application/json",
+    },
+  }
+);
+
 
       if (res.data.success) {
         toast.success("Message sent successfully!");
