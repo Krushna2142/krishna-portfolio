@@ -2,43 +2,54 @@
 import { useState } from 'react';
 import { toast } from 'react-toastify';
 import { FaGithub, FaLinkedin, FaEnvelope } from 'react-icons/fa';
-
+import axios from 'axios';
 const Contact = () => {
   const [formData, setFormData] = useState({
-    name: '', email: '', message: ''
+    name: "",
+    email: "",
+    message: "",
   });
+
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    const { name, email, message } = formData;
+
+    if (!name || !email || !message) {
+      toast.error("Please fill in all fields");
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/messages`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      });
+      const res = await axios.post(
+        `${import.meta.env.VITE_API_BASE_URL}/api/messages`,
+        formData
+      );
 
-      const data = await res.json();
-      if (res.ok) {
-        toast.success('Message sent successfully! ✅');
-        setFormData({ name: '', email: '', message: '' });
+      if (res.data.success) {
+        toast.success("Message sent successfully!");
+        setFormData({ name: "", email: "", message: "" });
       } else {
-        toast.error(data.message || 'Failed to send message ❌');
+        toast.error("Something went wrong");
       }
-    } catch (err) {
-      console.error(err);
-      toast.error('Something went wrong!');
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      toast.error("Something went wrong");
     } finally {
       setLoading(false);
     }
   };
-
   return (
     <section className="min-h-screen bg-gray-900 text-white flex items-center justify-center p-6">
       <div className="max-w-6xl w-full grid grid-cols-1 md:grid-cols-2 gap-10">
