@@ -18,7 +18,7 @@ const Contact = () => {
     setLoading(true);
 
     try {
-      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/messages`, {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/messages`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
