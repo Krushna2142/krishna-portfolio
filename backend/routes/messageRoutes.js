@@ -1,10 +1,15 @@
 import express from 'express';
-import { sendMessage, getAllMessages, deleteMessage } from '../controllers/messageController.js';
+import {
+  sendMessage,
+  getMessages,
+  deleteMessage,
+} from '../controllers/messageController.js';
+import { verifyAdmin } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-router.post('/', sendMessage);
-router.get('/', getAllMessages);
-router.delete('/:id', deleteMessage);
+router.post('/send', sendMessage);
+router.get('/', verifyAdmin, getMessages);
+router.delete('/:id', verifyAdmin, deleteMessage);
 
 export default router;
