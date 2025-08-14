@@ -1,15 +1,14 @@
-// backend/controllers/messageController.js
 import Message from '../models/messageModel.js';
 import nodemailer from 'nodemailer';
 
-// Create message
-const createMessage = async (req, res) => {
+export const createMessage = async (req, res) => {
   try {
     const { name, email, message } = req.body;
-    const newMessage = new Message({ name, email, message });
-    await newMessage.save();
+    if (!name || !email || !message) {
+      return res.status(400).json({ success: false, error: 'All fields required' });
+    }
+    const newMsg = await Message.create({ name, email, message });
 
-    // Send email to admin
     const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
@@ -18,43 +17,36 @@ const createMessage = async (req, res) => {
       },
     });
 
-    const mailOptions = {
+    await transporter.sendMail({
       from: process.env.EMAIL_USER,
       to: process.env.ADMIN_EMAIL,
-      subject: 'New Contact Message',
+      subject: 'New Contact Submission',
       html: `<p><strong>Name:</strong> ${name}</p>
              <p><strong>Email:</strong> ${email}</p>
              <p><strong>Message:</strong><br/>${message}</p>`,
-    };
+    });
 
-    await transporter.sendMail(mailOptions);
-
-    res.status(201).json({ success: true, message: 'Message sent successfully' });
-  } catch (error) {
+    res.status(201).json({ success: true, message: 'Message sent & email notified' });
+  } catch (err) {
+    console.error('Email Error:', err);
     res.status(500).json({ success: false, error: 'Message not sent' });
   }
 };
 
-// Get messages
-const getMessages = async (req, res) => {
+export const getMessages = async (req, res) => {
   try {
     const messages = await Message.find().sort({ createdAt: -1 });
-    res.json(messages);
-  } catch (error) {
-    res.status(500).json({ success: false, error: 'Failed to get messages' });
+    res.json({ success: true, messages });
+  } catch {
+    res.status(500).json({ success: false, error: 'Cannot retrieve messages' });
   }
 };
 
-// Delete message
-const deleteMessage = async (req, res) => {
+export const deleteMessage = async (req, res) => {
   try {
-    const { id } = req.params;
-    await Message.findByIdAndDelete(id);
-    res.json({ success: true, message: 'Message deleted' });
-  } catch (error) {
-    res.status(500).json({ success: false, error: 'Failed to delete message' });
+    await Message.findByIdAndDelete(req.params.id);
+    res.json({ success: true, message: 'Deleted' });
+  } catch {
+    res.status(500).json({ success: false, error: 'Delete failed' });
   }
 };
-
-// ✅ Named exports
-export { createMessage, getMessages, deleteMessage };

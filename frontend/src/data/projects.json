@@ -3,33 +3,33 @@
     "title": "AI-Powered Intelligent Workflow Automation Platform",
     "description": "Visual no-code platform to automate APIs, emails, Slack, DB using workflows.",
     "technologies": ["React", "Node.js", "MongoDB", "BullMQ"],
-    "image": "/images/workflow.png",
-    "github": "https://github.com/Krushna2142/intelligent-workflow-automation",
+    "image": "/images/Workflow.webp",
+    "github": "https://github.com/Krushna2142/AI-Powered-Intelligent-Workflow-Automation-Platform",
     "live": "https://workflow-platform.vercel.app"
   },
   {
     "title": "AI-Powered Resume Analyzer & Job Recommendation Platform",
     "description": "Built a GPT-powered resume screener for HRs to rank applicants instantly.",
     "technologies": ["Next.js", "OpenAI", "Tailwind"],
-    "image": "/images/resume-ai.png",
-    "github": "https://github.com/Krushna2142/resume-screener",
+    "image": "/images/ResumeAnalyzer.webp",
+    "github": "https://github.com/Krushna2142/AI-Powered-Resume-Analyzer-and-Job-Recommendation-Platform",
     "live": "https://resumeai.vercel.app"
   },
   {
     "title": "AI-Powered Customer Query & Ticketing Assistant",
     "description": "Created an ERP portal for college with attendance, marks, and login system.",
     "technologies": ["MERN", "JWT", "MongoDB"],
-    "image": "/images/college-erp.png",
-    "github": "https://github.com/Krushna2142/college-erp",
+    "image": "/images/Customer.webp",
+    "github": "https://github.com/Krushna2142/AI-Powered-Customer-Query-Ticketing-Assistant",
     "live": "https://collegeerp.vercel.app"
   },
   {
     "title": "PhysioTherapy Web App",
     "description": "This was project specifically made for a physiotherapy clinic to manage patients and their appointments.",
     "technologies": ["MERN", "JWT", "MongoDB"],
-    "image": "/images/physiotherapy.png",
-    "github": "https://github.com/Krushna2142/physiotherapy-web-app",
-    "live": "https://physiotherapy-web-app.vercel.app"
+    "image": "/images/Physiotherapy.webp",
+    "github": "https://github.com/Krushna2142/Physio-Website",
+    "live": "https://physio-website-mu.vercel.app"
     
   }
 ]

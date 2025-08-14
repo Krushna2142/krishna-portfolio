@@ -4,11 +4,10 @@ import {
   getMessages,
   deleteMessage,
 } from '../controllers/messageController.js';
+import { verifyAdmin } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
-
-router.post('/', createMessage); // ✅ POST /api/messages
-router.get('/', getMessages);    // ✅ GET /api/messages
-router.delete('/:id', deleteMessage); // ✅ DELETE /api/messages/:id
-
+router.post('/', createMessage);
+router.get('/', verifyAdmin, getMessages);
+router.delete('/:id', verifyAdmin, deleteMessage);
 export default router;
