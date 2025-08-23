@@ -15,9 +15,8 @@ const Contact = () => {
       {/* Google Form Embed */}
       <div className="w-full max-w-4xl bg-white dark:bg-gray-800 shadow-2xl rounded-2xl overflow-hidden p-4 border border-gray-200 dark:border-gray-700">
         <iframe
-          src="https://docs.google.com/forms/d/e/1FAIpQLSfyaE5LUB9pDDifdz5XuWaVsC3wcHOOiau5qAp1p0-GOAh3vA/viewform?embedded=true"
-           className="w-full h-[1200px] border-0"
-      title="Contact Form"
+          src="https://docs.google.com/forms/d/e/1FAIpQLSfULLjWwaUvJDg6iGYJjlKcVIS79wV5wtCA6WTFW2aJEj11Ig/viewform?embedded=true"
+          className="w-full h-[1200px] border-0"
         >
           Loading…
         </iframe>
