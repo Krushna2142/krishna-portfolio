@@ -13,7 +13,7 @@ const Contact = () => {
       </p>
 
       {/* Google Form Embed */}
-      <div className="w-full max-w-4xl bg-white dark:bg-gray-800 shadow-2xl rounded-2xl overflow-hidden p-4 border border-gray-200 dark:border-gray-700">
+      <div className="w-full max-w-4xl text-white bg-white dark:bg-gray-800 shadow-2xl rounded-2xl overflow-hidden p-4 border border-gray-200 dark:border-gray-700">
         <iframe
           src="https://docs.google.com/forms/d/e/1FAIpQLSfULLjWwaUvJDg6iGYJjlKcVIS79wV5wtCA6WTFW2aJEj11Ig/viewform?embedded=true"
           className="w-full h-[1200px] border-0"
