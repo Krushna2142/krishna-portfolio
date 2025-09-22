@@ -72,12 +72,12 @@ const Home = () => {
         </div>
 
         {/* Contact Button */}
-        <a
-          href="https://krishna-portfolio-peach-one.vercel.app/contact"
-          className="inline-flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-full hover:bg-blue-700 transition duration-300"
-        >
-          Contact Me <FaArrowRight />
-        </a>
+       <Link
+  to="/contact"
+  className="inline-flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-full hover:bg-blue-700 transition duration-300"
+>
+  Contact Me <FaArrowRight />
+</Link>
       </div>
     </div>
   );
