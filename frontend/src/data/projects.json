@@ -24,6 +24,15 @@
     "live": "https://collegeerp.vercel.app"
   },
   {
+    "title": "SmartFinance: AI-Powered Personal Expense Advisor",
+    "description": "This project helps users manage their finances by providing personalized expense tracking and budgeting recommendations.",
+    "technologies": ["MERN", "JWT", "MongoDB"],
+    "image": "/images/Physiotherapy.webp",
+    "github": "https://github.com/Krushna2142/Physio-Website",
+    "live": "https://physio-website-mu.vercel.app"
+    
+  },
+  {
     "title": "PhysioTherapy Web App",
     "description": "This was project specifically made for a physiotherapy clinic to manage patients and their appointments.",
     "technologies": ["MERN", "JWT", "MongoDB"],
