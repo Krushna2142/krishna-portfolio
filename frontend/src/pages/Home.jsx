@@ -1,6 +1,12 @@
 // src/pages/Home.jsx
 import React, { useEffect } from "react";
-import { FaArrowRight, FaGithub, FaLinkedin, FaInstagram, FaDiscord } from "react-icons/fa";
+import {
+  FaArrowRight,
+  FaGithub,
+  FaLinkedin,
+  FaInstagram,
+  FaDiscord,
+} from "react-icons/fa";
 import { TypeAnimation } from "react-type-animation";
 import AOS from "aos";
 import "aos/dist/aos.css";
@@ -18,17 +24,18 @@ const Home = () => {
         data-aos-delay="200"
       >
         <h1 className="text-4xl md:text-6xl font-bold text-gray-900 dark:text-white mb-6 leading-tight">
-          Hey, I'm <span className="text-blue-600 dark:text-blue-400">Krushna</span> 👋
+          Hey, I'm{" "}
+          <span className="text-blue-600 dark:text-blue-400">Krushna</span> 👋
         </h1>
 
         <TypeAnimation
           sequence={[
             "Full Stack Developer 💻",
             2000,
-            
+
             "Freelancer 🧑‍💼",
             2000,
-            
+
             "Cloud Enthusiast ☁️",
             2000,
           ]}
@@ -39,7 +46,8 @@ const Home = () => {
         />
 
         <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto mb-8">
-          I design and build modern full stack web applications. Let's collaborate on something amazing.
+          I design and build modern full stack web applications. Let's
+          collaborate on something amazing.
         </p>
 
         {/* Social Icons */}
@@ -60,7 +68,7 @@ const Home = () => {
           >
             <FaLinkedin />
           </a>
-         
+
           <a
             href="https://www.instagram.com/krishna_pokharkar.243/"
             target="_blank"
@@ -72,12 +80,13 @@ const Home = () => {
         </div>
 
         {/* Contact Button */}
-       <Link
-  to="/contact"
-  className="inline-flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-full hover:bg-blue-700 transition duration-300"
->
-  Contact Me <FaArrowRight />
-</Link>
+        <a
+          href="/contact"
+          className="inline-flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-full hover:bg-blue-700 transition duration-300"
+        >
+          Contact Me
+          <FaArrowRight />
+        </a>
       </div>
     </div>
   );
