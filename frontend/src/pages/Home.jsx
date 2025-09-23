@@ -5,11 +5,11 @@ import {
   FaGithub,
   FaLinkedin,
   FaInstagram,
-  FaDiscord,
 } from "react-icons/fa";
 import { TypeAnimation } from "react-type-animation";
 import AOS from "aos";
 import "aos/dist/aos.css";
+import { Link } from "react-router-dom"; // ✅ Import Link
 
 const Home = () => {
   useEffect(() => {
@@ -30,14 +30,9 @@ const Home = () => {
 
         <TypeAnimation
           sequence={[
-            "Full Stack Developer 💻",
-            2000,
-
-            "Freelancer 🧑‍💼",
-            2000,
-
-            "Cloud Enthusiast ☁️",
-            2000,
+            "Full Stack Developer 💻", 2000,
+            "Freelancer 🧑‍💼", 2000,
+            "Cloud Enthusiast ☁️", 2000,
           ]}
           wrapper="span"
           speed={40}
@@ -68,7 +63,6 @@ const Home = () => {
           >
             <FaLinkedin />
           </a>
-
           <a
             href="https://www.instagram.com/krishna_pokharkar.243/"
             target="_blank"
@@ -80,15 +74,13 @@ const Home = () => {
         </div>
 
         {/* Contact Button */}
-        <a
-          href="/contact"
-          target="_blank"
-          rel="noopener noreferrer"
+        <Link
+          to="/contact"   // ✅ Use Link instead of <a>
           className="inline-flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-full hover:bg-blue-700 transition duration-300"
         >
           Contact Me
           <FaArrowRight />
-        </a>
+        </Link>
       </div>
     </div>
   );
