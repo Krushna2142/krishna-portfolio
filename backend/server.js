@@ -6,7 +6,16 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const app = express();
-app.use(cors());
+app.use(cors(
+    {
+        origin:[
+            "http://localhost:3000", 
+            "https://krishna-portfolio-peach-one.vercel.app"
+
+        ],
+        methods: [ 'POST'],
+    }
+));
 app.use(express.json());
 
 // ✉️ POST route for sending mail
