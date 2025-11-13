@@ -1,30 +1,99 @@
-import React from "react";
+import React, { useState } from "react";
 
 const Contact = () => {
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+   
+    message: "",
+  });
+  const [status, setStatus] = useState("");
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setStatus("Sending...");
+
+    try {
+      const res = await fetch("http://localhost:5000/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        setStatus("✅ Message sent successfully!");
+        setFormData({ name: "", email: "",  message: "" });
+      } else {
+        setStatus("❌ Failed to send message. Try again later.");
+      }
+    } catch (error) {
+      console.error(error);
+      setStatus("❌ Error sending message.");
+    }
+  };
+
   return (
-    <div className="w-full min-h-screen dark:bg-gray-900 bg-gray-50 flex flex-col items-center py-12 px-4">
-      {/* Heading */}
-      <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900 dark:text-white pt-6 mb-4 tracking-wide">
-        Contact Us
-      </h1>
-      <p className="text-lg text-gray-700 dark:text-gray-300 mb-10 max-w-2xl text-center leading-relaxed">
-        Have a question, feedback, or project inquiry?  
-        Fill out the form below and we’ll get back to you as soon as possible.
-      </p>
+    <section className="min-h-screen bg-gray-900 text-white flex items-center justify-center px-6 py-18">
+      <div className="w-full max-w-md bg-gray-800 p-8 rounded-2xl shadow-2xl">
+        <h2 className="text-3xl font-bold text-center mb-6 text-blue-400">Contact Me</h2>
 
-      {/* Google Form Embed */}
-      <div className="w-full max-w-4xl text-white bg-white dark:bg-gray-800 shadow-2xl rounded-2xl overflow-hidden p-4 border border-gray-200 dark:border-gray-700">
-        <iframe
-          src="https://docs.google.com/forms/d/e/1FAIpQLSfULLjWwaUvJDg6iGYJjlKcVIS79wV5wtCA6WTFW2aJEj11Ig/viewform?embedded=true"
-          className="w-full h-[1200px] border-0"
-        >
-          Loading…
-        </iframe>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Name */}
+          <div>
+            <label className="block mb-2 text-sm font-medium">Name</label>
+            <input
+              type="text"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              className="w-full p-3 rounded-lg bg-gray-700 border border-gray-600 focus:border-blue-400 focus:ring focus:ring-blue-400 outline-none"
+              required
+            />
+          </div>
+
+          {/* Email */}
+          <div>
+            <label className="block mb-2 text-sm font-medium">Email</label>
+            <input
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              className="w-full p-3 rounded-lg bg-gray-700 border border-gray-600 focus:border-blue-400 focus:ring focus:ring-blue-400 outline-none"
+              required
+            />
+          </div>
+
+          {/* Message */}
+          <div>
+            <label className="block mb-2 text-sm font-medium">Message</label>
+            <textarea
+              name="message"
+              rows="4"
+              value={formData.message}
+              onChange={handleChange}
+              className="w-full p-3 rounded-lg bg-gray-700 border border-gray-600 focus:border-blue-400 focus:ring focus:ring-blue-400 outline-none resize-none"
+              required
+            ></textarea>
+          </div>
+
+          {/* Submit Button */}
+          <button
+            type="submit"
+            className="w-full py-3 bg-blue-500 hover:bg-blue-600 rounded-lg font-semibold text-white transition-all duration-300"
+          >
+            Send Message
+          </button>
+        </form>
+
+        {status && <p className="text-center mt-4 text-sm">{status}</p>}
       </div>
-
-      {/* Decorative line */}
-      <div className="mt-12 w-24 h-1 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full"></div>
-    </div>
+    </section>
   );
 };
 
