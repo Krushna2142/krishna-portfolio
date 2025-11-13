@@ -33,6 +33,10 @@ const Home = () => {
             "Full Stack Developer 💻", 2000,
             "Freelancer 🧑‍💼", 2000,
             "Cloud Enthusiast ☁️", 2000,
+            "Tech Blogger 📝", 2000,
+            "Open Source Contributor 🌍", 2000,
+            "AI Enthusiast 🤖", 2000,
+            
           ]}
           wrapper="span"
           speed={40}
@@ -41,7 +45,7 @@ const Home = () => {
         />
 
         <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto mb-8">
-          I design and build modern full stack web applications. Let's
+          I design and build modern and Scalable full stack web applications. Let's
           collaborate on something amazing.
         </p>
 
@@ -71,7 +75,7 @@ const Home = () => {
           >
             <FaInstagram />
           </a>
-        </div>
+        </div>  
 
         {/* Contact Button */}
         <Link
