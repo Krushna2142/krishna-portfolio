@@ -4,7 +4,7 @@ const Contact = () => {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
-   
+    subject:"",
     message: "",
   });
   const [status, setStatus] = useState("");
@@ -18,7 +18,7 @@ const Contact = () => {
     setStatus("Sending...");
 
     try {
-      const res = await fetch("https://krishna-portfolio-backend-ined.onrender.com/api/contact", {
+      const res = await fetch("https://krishna-portfolio-backend-ined.onrender.com/send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
@@ -27,7 +27,7 @@ const Contact = () => {
       const data = await res.json();
       if (data.success) {
         setStatus("✅ Message sent successfully!");
-        setFormData({ name: "", email: "",  message: "" });
+        setFormData({ name: "", email: "", subject:"",  message: "" });
       } else {
         setStatus("❌ Failed to send message. Try again later.");
       }
@@ -63,6 +63,18 @@ const Contact = () => {
               type="email"
               name="email"
               value={formData.email}
+              onChange={handleChange}
+              className="w-full p-3 rounded-lg bg-gray-700 border border-gray-600 focus:border-blue-400 focus:ring focus:ring-blue-400 outline-none"
+              required
+            />
+          </div>
+          {/* Subject */}
+          <div>
+            <label className="block mb-2 text-sm font-medium">Subject</label>
+            <input
+              type="text"
+              name="subject"
+              value={formData.subject}
               onChange={handleChange}
               className="w-full p-3 rounded-lg bg-gray-700 border border-gray-600 focus:border-blue-400 focus:ring focus:ring-blue-400 outline-none"
               required
