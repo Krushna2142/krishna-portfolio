@@ -1,12 +1,14 @@
+/* eslint-disable no-unused-vars */
 import React, { useState } from "react";
 
 const Contact = () => {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
-    subject:"",
+    subject: "",
     message: "",
   });
+
   const [status, setStatus] = useState("");
 
   const handleChange = (e) => {
@@ -18,94 +20,81 @@ const Contact = () => {
     setStatus("Sending...");
 
     try {
-      const res = await fetch("https://krishna-portfolio-backend-ined.onrender.com/send", {
+      const res = await fetch("https://krishna-portfolio-backend-ined.onrender.com/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
 
       const data = await res.json();
+
       if (data.success) {
-        setStatus("✅ Message sent successfully!");
-        setFormData({ name: "", email: "", subject:"",  message: "" });
+        setStatus("Message sent successfully!");
+        setFormData({ name: "", email: "", subject: "", message: "" });
       } else {
-        setStatus("❌ Failed to send message. Try again later.");
+        setStatus("Failed to send message.");
       }
+
     } catch (error) {
-      console.error(error);
-      setStatus("❌ Error sending message.");
+      setStatus("Server error. Try again later.");
     }
   };
 
   return (
-    <section className="min-h-screen bg-gray-900 text-white flex items-center justify-center px-6 py-18">
-      <div className="w-full max-w-md bg-gray-800 p-8 rounded-2xl shadow-2xl">
-        <h2 className="text-3xl font-bold text-center mb-6 text-blue-400">Contact Me</h2>
+    <div className="min-h-screen bg-black text-white flex justify-center items-center p-6">
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Name */}
-          <div>
-            <label className="block mb-2 text-sm font-medium">Name</label>
-            <input
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              className="w-full p-3 rounded-lg bg-gray-700 border border-gray-600 focus:border-blue-400 focus:ring focus:ring-blue-400 outline-none"
-              required
-            />
-          </div>
+      <form
+        onSubmit={handleSubmit}
+        className="bg-gray-900 p-8 rounded-xl shadow-xl w-full max-w-lg space-y-4"
+      >
+        <h1 className="text-3xl font-bold text-center mb-4">Contact Me</h1>
 
-          {/* Email */}
-          <div>
-            <label className="block mb-2 text-sm font-medium">Email</label>
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              className="w-full p-3 rounded-lg bg-gray-700 border border-gray-600 focus:border-blue-400 focus:ring focus:ring-blue-400 outline-none"
-              required
-            />
-          </div>
-          {/* Subject */}
-          <div>
-            <label className="block mb-2 text-sm font-medium">Subject</label>
-            <input
-              type="text"
-              name="subject"
-              value={formData.subject}
-              onChange={handleChange}
-              className="w-full p-3 rounded-lg bg-gray-700 border border-gray-600 focus:border-blue-400 focus:ring focus:ring-blue-400 outline-none"
-              required
-            />
-          </div>
+        <input
+          type="text"
+          name="name"
+          placeholder="Your Name"
+          value={formData.name}
+          onChange={handleChange}
+          className="w-full p-3 bg-gray-800 text-white rounded-lg outline-none"
+        />
 
-          {/* Message */}
-          <div>
-            <label className="block mb-2 text-sm font-medium">Message</label>
-            <textarea
-              name="message"
-              rows="4"
-              value={formData.message}
-              onChange={handleChange}
-              className="w-full p-3 rounded-lg bg-gray-700 border border-gray-600 focus:border-blue-400 focus:ring focus:ring-blue-400 outline-none resize-none"
-              required
-            ></textarea>
-          </div>
+        <input
+          type="email"
+          name="email"
+          placeholder="Your Email"
+          value={formData.email}
+          onChange={handleChange}
+          className="w-full p-3 bg-gray-800 text-white rounded-lg outline-none"
+        />
 
-          {/* Submit Button */}
-          <button
-            type="submit"
-            className="w-full py-3 bg-blue-500 hover:bg-blue-600 rounded-lg font-semibold text-white transition-all duration-300"
-          >
-            Send Message
-          </button>
-        </form>
+        <input
+          type="text"
+          name="subject"
+          placeholder="Subject"
+          value={formData.subject}
+          onChange={handleChange}
+          className="w-full p-3 bg-gray-800 text-white rounded-lg outline-none"
+        />
 
-        {status && <p className="text-center mt-4 text-sm">{status}</p>}
-      </div>
-    </section>
+        <textarea
+          name="message"
+          placeholder="Your Message"
+          rows="5"
+          value={formData.message}
+          onChange={handleChange}
+          className="w-full p-3 bg-gray-800 text-white rounded-lg outline-none"
+        ></textarea>
+
+        <button
+          type="submit"
+          className="w-full bg-blue-600 hover:bg-blue-700 p-3 rounded-lg text-white font-semibold"
+        >
+          Send Message
+        </button>
+
+        <p className="text-center mt-3 text-gray-300">{status}</p>
+      </form>
+    </div>
   );
 };
 
