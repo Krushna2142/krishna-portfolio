@@ -18,7 +18,7 @@ const Contact = () => {
     setStatus("Sending...");
 
     try {
-      const res = await fetch("https://krishna-portfolio-backend-ined.onrender.com/send", {
+      const res = await fetch("https://krishna-portfolio-backend-ined.onrender.com/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
