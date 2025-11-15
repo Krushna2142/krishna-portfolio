@@ -4,23 +4,30 @@ import dotenv from "dotenv";
 import nodemailer from "nodemailer";
 
 dotenv.config();
+
 const app = express();
 
-app.use(cors());
+// Middleware
 app.use(express.json());
+app.use(cors({
+  origin: "*", // Allow all frontend domains
+}));
 
+// TEST ROUTE
 app.get("/", (req, res) => {
-  res.send("Portfolio backend is running 🚀");
+  res.send("Backend is running!");
 });
 
+// CONTACT API ROUTE
 app.post("/api/contact", async (req, res) => {
   const { name, email, subject, message } = req.body;
 
-  if (!name || !email || !message) {
-    return res.status(400).json({ success: false, error: "Missing fields" });
+  if (!name || !email || !subject || !message) {
+    return res.status(400).json({ success: false, msg: "All fields required" });
   }
 
   try {
+    // Email Transporter
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
@@ -29,19 +36,28 @@ app.post("/api/contact", async (req, res) => {
       },
     });
 
-    await transporter.sendMail({
+    // Mail Details
+    const mailOptions = {
       from: email,
       to: process.env.EMAIL_USER,
-      subject: subject || "New Portfolio Message",
-      text: message,
-    });
+      subject: `Portfolio Contact: ${subject}`,
+      text: `
+        Name: ${name}
+        Email: ${email}
+        Subject: ${subject}
+        Message: ${message}
+      `,
+    };
 
-    res.json({ success: true });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, error: "Email sending failed" });
+    await transporter.sendMail(mailOptions);
+
+    res.json({ success: true, msg: "Message sent successfully!" });
+  } catch (error) {
+    console.error("Email Error:", error);
+    res.status(500).json({ success: false, msg: "Failed to send email" });
   }
 });
 
-const PORT = process.env.PORT || 5000;
+// PORT for Render
+const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

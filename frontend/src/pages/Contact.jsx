@@ -1,5 +1,5 @@
-/* eslint-disable no-unused-vars */
 import React, { useState } from "react";
+import axios from "axios";
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -20,81 +20,92 @@ const Contact = () => {
     setStatus("Sending...");
 
     try {
-      const res = await fetch("https://krishna-portfolio-backend-ined.onrender.com/api/contact", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
+      const res = await axios.post(
+        "https://krishna-portfolio-backend-ined.onrender.com/api/contact",
+        formData
+      );
 
-      const data = await res.json();
-
-      if (data.success) {
-        setStatus("Message sent successfully!");
+      if (res.data.success) {
+        setStatus("✅ Message sent successfully!");
         setFormData({ name: "", email: "", subject: "", message: "" });
       } else {
-        setStatus("Failed to send message.");
+        setStatus("❌ Failed to send message.");
       }
-
     } catch (error) {
-      setStatus("Server error. Try again later.");
+      console.error(error);
+      setStatus("❌ Server error. Try again later.");
     }
   };
 
   return (
-    <div className="min-h-screen bg-black text-white flex justify-center items-center p-6">
+    <section className="min-h-screen bg-gray-900 text-white flex items-center justify-center px-6 py-18">
+      <div className="w-full max-w-md bg-gray-800 p-8 rounded-2xl shadow-2xl">
+        <h2 className="text-3xl font-bold text-center mb-6 text-blue-400">
+          Contact Me
+        </h2>
 
-      <form
-        onSubmit={handleSubmit}
-        className="bg-gray-900 p-8 rounded-xl shadow-xl w-full max-w-lg space-y-4"
-      >
-        <h1 className="text-3xl font-bold text-center mb-4">Contact Me</h1>
+        <form onSubmit={handleSubmit} className="space-y-4">
 
-        <input
-          type="text"
-          name="name"
-          placeholder="Your Name"
-          value={formData.name}
-          onChange={handleChange}
-          className="w-full p-3 bg-gray-800 text-white rounded-lg outline-none"
-        />
+          {/* Name */}
+          <div>
+            <label className="block mb-2">Name</label>
+            <input
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              required
+              className="w-full p-3 bg-gray-700 rounded"
+            />
+          </div>
 
-        <input
-          type="email"
-          name="email"
-          placeholder="Your Email"
-          value={formData.email}
-          onChange={handleChange}
-          className="w-full p-3 bg-gray-800 text-white rounded-lg outline-none"
-        />
+          {/* Email */}
+          <div>
+            <label className="block mb-2">Email</label>
+            <input
+              name="email"
+              type="email"
+              value={formData.email}
+              onChange={handleChange}
+              required
+              className="w-full p-3 bg-gray-700 rounded"
+            />
+          </div>
 
-        <input
-          type="text"
-          name="subject"
-          placeholder="Subject"
-          value={formData.subject}
-          onChange={handleChange}
-          className="w-full p-3 bg-gray-800 text-white rounded-lg outline-none"
-        />
+          {/* Subject */}
+          <div>
+            <label className="block mb-2">Subject</label>
+            <input
+              name="subject"
+              value={formData.subject}
+              onChange={handleChange}
+              required
+              className="w-full p-3 bg-gray-700 rounded"
+            />
+          </div>
 
-        <textarea
-          name="message"
-          placeholder="Your Message"
-          rows="5"
-          value={formData.message}
-          onChange={handleChange}
-          className="w-full p-3 bg-gray-800 text-white rounded-lg outline-none"
-        ></textarea>
+          {/* Message */}
+          <div>
+            <label className="block mb-2">Message</label>
+            <textarea
+              name="message"
+              rows="4"
+              value={formData.message}
+              onChange={handleChange}
+              required
+              className="w-full p-3 bg-gray-700 rounded"
+            ></textarea>
+          </div>
 
-        <button
-          type="submit"
-          className="w-full bg-blue-600 hover:bg-blue-700 p-3 rounded-lg text-white font-semibold"
-        >
-          Send Message
-        </button>
+          <button
+            className="w-full py-3 bg-blue-500 rounded hover:bg-blue-600"
+          >
+            Send Message
+          </button>
+        </form>
 
-        <p className="text-center mt-3 text-gray-300">{status}</p>
-      </form>
-    </div>
+        {status && <p className="text-center mt-4">{status}</p>}
+      </div>
+    </section>
   );
 };
 
