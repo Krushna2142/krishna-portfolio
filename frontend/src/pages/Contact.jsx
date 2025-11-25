@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+/* eslint-disable no-unused-vars */
+import { useState } from "react";
 import axios from "axios";
 
-const Contact = () => {
+export default function Contact() {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -21,92 +22,68 @@ const Contact = () => {
 
     try {
       const res = await axios.post(
-        "https://krishna-portfolio-backend-ined.onrender.com/api/contact",
+        "http://localhost:8080/api/contact",
         formData
       );
 
-      if (res.data.success) {
-        setStatus("✅ Message sent successfully!");
-        setFormData({ name: "", email: "", subject: "", message: "" });
+      if (res.data === "OK") {
+        setStatus("Message Sent Successfully ✔️");
       } else {
-        setStatus("❌ Failed to send message.");
+        setStatus("❌ Failed: " + res.data);
       }
-    } catch (error) {
-      console.error(error);
-      setStatus("❌ Server error. Try again later.");
+
+    } catch (err) {
+      setStatus("❌ Error sending message");
     }
   };
 
   return (
-    <section className="min-h-screen bg-gray-900 text-white flex items-center justify-center px-6 py-18">
-      <div className="w-full max-w-md bg-gray-800 p-8 rounded-2xl shadow-2xl">
-        <h2 className="text-3xl font-bold text-center mb-6 text-blue-400">
-          Contact Me
-        </h2>
+    <div className="text-white p-8 bg-black min-h-screen">
+      <h2 className="text-3xl font-bold mb-6">Contact Me</h2>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-4 max-w-md">
 
-          {/* Name */}
-          <div>
-            <label className="block mb-2">Name</label>
-            <input
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              required
-              className="w-full p-3 bg-gray-700 rounded"
-            />
-          </div>
+        <input
+          type="text"
+          name="name"
+          placeholder="Your Name"
+          className="w-full p-3 bg-gray-800 border border-gray-700 rounded"
+          onChange={handleChange}
+        />
 
-          {/* Email */}
-          <div>
-            <label className="block mb-2">Email</label>
-            <input
-              name="email"
-              type="email"
-              value={formData.email}
-              onChange={handleChange}
-              required
-              className="w-full p-3 bg-gray-700 rounded"
-            />
-          </div>
+        <input
+          type="email"
+          name="email"
+          placeholder="Your Email"
+          className="w-full p-3 bg-gray-800 border border-gray-700 rounded"
+          onChange={handleChange}
+        />
 
-          {/* Subject */}
-          <div>
-            <label className="block mb-2">Subject</label>
-            <input
-              name="subject"
-              value={formData.subject}
-              onChange={handleChange}
-              required
-              className="w-full p-3 bg-gray-700 rounded"
-            />
-          </div>
+        <input
+          type="text"
+          name="subject"
+          placeholder="Subject"
+          className="w-full p-3 bg-gray-800 border border-gray-700 rounded"
+          onChange={handleChange}
+        />
 
-          {/* Message */}
-          <div>
-            <label className="block mb-2">Message</label>
-            <textarea
-              name="message"
-              rows="4"
-              value={formData.message}
-              onChange={handleChange}
-              required
-              className="w-full p-3 bg-gray-700 rounded"
-            ></textarea>
-          </div>
+        <textarea
+          name="message"
+          placeholder="Message"
+          rows="5"
+          className="w-full p-3 bg-gray-800 border border-gray-700 rounded"
+          onChange={handleChange}
+        ></textarea>
 
-          <button
-            className="w-full py-3 bg-blue-500 rounded hover:bg-blue-600"
-          >
-            Send Message
-          </button>
-        </form>
+        <button
+          type="submit"
+          className="w-full p-3 bg-blue-600 hover:bg-blue-700 rounded"
+        >
+          Send Message
+        </button>
+      </form>
 
-        {status && <p className="text-center mt-4">{status}</p>}
-      </div>
-    </section>
+      {status && <p className="mt-4 text-lg">{status}</p>}
+    </div>
   );
-};
-
-export default Contact;
+}
