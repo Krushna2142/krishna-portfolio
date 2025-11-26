@@ -1,12 +1,10 @@
 /* eslint-disable no-unused-vars */
 import { useState } from "react";
-import axios from "axios";
 
 export default function Contact() {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
-    subject: "",
     message: "",
   });
 
@@ -21,19 +19,23 @@ export default function Contact() {
     setStatus("Sending...");
 
     try {
-      const res = await axios.post(
-        "http://localhost:8080/api/contact",
-        formData
-      );
+      const res = await fetch("http://localhost:8080/api/public/contact", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),   // ✅ CORRECT
+      });
 
-      if (res.data === "OK") {
-        setStatus("Message Sent Successfully ✔️");
-      } else {
-        setStatus("❌ Failed: " + res.data);
+      if (!res.ok) {
+        throw new Error("Failed to send message");
       }
 
+      setStatus("Message sent successfully!");
+      setFormData({ name: "", email: "", message: "" });
     } catch (err) {
-      setStatus("❌ Error sending message");
+      setStatus("Something went wrong. Try again.");
+      console.error(err);
     }
   };
 
@@ -42,37 +44,34 @@ export default function Contact() {
       <h2 className="text-3xl font-bold mb-6">Contact Me</h2>
 
       <form onSubmit={handleSubmit} className="space-y-4 max-w-md">
-
         <input
           type="text"
           name="name"
+          value={formData.name}
           placeholder="Your Name"
           className="w-full p-3 bg-gray-800 border border-gray-700 rounded"
           onChange={handleChange}
+          required
         />
 
         <input
           type="email"
           name="email"
+          value={formData.email}
           placeholder="Your Email"
           className="w-full p-3 bg-gray-800 border border-gray-700 rounded"
           onChange={handleChange}
-        />
-
-        <input
-          type="text"
-          name="subject"
-          placeholder="Subject"
-          className="w-full p-3 bg-gray-800 border border-gray-700 rounded"
-          onChange={handleChange}
+          required
         />
 
         <textarea
           name="message"
+          value={formData.message}
           placeholder="Message"
           rows="5"
           className="w-full p-3 bg-gray-800 border border-gray-700 rounded"
           onChange={handleChange}
+          required
         ></textarea>
 
         <button
