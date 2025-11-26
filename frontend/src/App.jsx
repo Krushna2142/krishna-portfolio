@@ -4,6 +4,8 @@ import Footer from './components/Footer';
 import React from 'react';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+// App.jsx
+import ProtectedRoute from './components/ProtectedRoute'; // Make sure the path is correct
 
 // Frontend Pages
 import Home from './pages/Home';
@@ -32,10 +34,8 @@ function App() {
             <Route path="/services" element={<Services />} />
             <Route path="/projects" element={<Projects />} />
             <Route path="/contact" element={<Contact />} />
-
-            {/* Admin Routes */}
-            <Route path="/admin" element={<AdminLogin />} />
-            <Route path="/admin/messages" element={<AdminDashboard />} />
+            <Route path="/admin/login" element={<AdminLogin />} />
+            <Route path="/admin/dashboard" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>}/>
           </Routes>
         </div>
 

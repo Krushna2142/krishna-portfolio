@@ -1,10 +1,13 @@
 /* eslint-disable no-unused-vars */
+// src/components/ContactForm.jsx
 import { useState } from "react";
+import axios from "axios";
 
-export default function Contact() {
+export default function ContactForm() {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
+    subject: "",
     message: "",
   });
 
@@ -16,73 +19,63 @@ export default function Contact() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setStatus("Sending...");
-
     try {
-      const res = await fetch("http://localhost:8080/api/public/contact", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),   // ✅ CORRECT
-      });
-
-      if (!res.ok) {
-        throw new Error("Failed to send message");
-      }
-
+      await axios.post("/api/contact", formData);
       setStatus("Message sent successfully!");
-      setFormData({ name: "", email: "", message: "" });
+      setFormData({ name: "", email: "", subject: "", message: "" });
     } catch (err) {
-      setStatus("Something went wrong. Try again.");
-      console.error(err);
+      setStatus("Failed to send message. Try again.");
     }
   };
 
   return (
-    <div className="text-white p-8 bg-black min-h-screen">
-      <h2 className="text-3xl font-bold mb-6">Contact Me</h2>
-
-      <form onSubmit={handleSubmit} className="space-y-4 max-w-md">
+    <div className="max-w-xl mx-auto bg-gray-900 text-white p-6 rounded-lg shadow-md">
+      <h2 className="text-2xl mb-4">Contact Me</h2>
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <input
           type="text"
           name="name"
-          value={formData.name}
           placeholder="Your Name"
-          className="w-full p-3 bg-gray-800 border border-gray-700 rounded"
+          className="p-2 rounded bg-gray-800"
+          value={formData.name}
           onChange={handleChange}
           required
         />
-
         <input
           type="email"
           name="email"
-          value={formData.email}
           placeholder="Your Email"
-          className="w-full p-3 bg-gray-800 border border-gray-700 rounded"
+          className="p-2 rounded bg-gray-800"
+          value={formData.email}
           onChange={handleChange}
           required
         />
-
-        <textarea
-          name="message"
-          value={formData.message}
-          placeholder="Message"
-          rows="5"
-          className="w-full p-3 bg-gray-800 border border-gray-700 rounded"
+        <input
+          type="text"
+          name="subject"
+          placeholder="Subject"
+          className="p-2 rounded bg-gray-800"
+          value={formData.subject}
           onChange={handleChange}
           required
-        ></textarea>
-
+        />
+        <textarea
+          name="message"
+          placeholder="Message"
+          className="p-2 rounded bg-gray-800"
+          rows="5"
+          value={formData.message}
+          onChange={handleChange}
+          required
+        />
         <button
           type="submit"
-          className="w-full p-3 bg-blue-600 hover:bg-blue-700 rounded"
+          className="bg-blue-600 p-2 rounded hover:bg-blue-500"
         >
           Send Message
         </button>
       </form>
-
-      {status && <p className="mt-4 text-lg">{status}</p>}
+      {status && <p className="mt-2">{status}</p>}
     </div>
   );
 }
