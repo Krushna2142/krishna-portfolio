@@ -12,17 +12,14 @@ const FRONTEND_ORIGIN = "https://krishna-portfolio-peach-one.vercel.app";
 
 const corsOptions = {
   origin: FRONTEND_ORIGIN,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"], // include OPTIONS
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true,
 };
 
-// Use CORS for all routes (this automatically handles preflight for most setups)
+// Use CORS for all routes. This covers preflight handling in normal Express setups.
+// Removing explicit app.options(...) avoids path-to-regexp PathError seen in deploy logs.
 app.use(cors(corsOptions));
-
-// If you still want an explicit preflight handler, use a wildcard path that Express/path-to-regexp accepts.
-// Using '*' caused the PathError; '/ *' (string) or a regex is accepted. Using '/*' is safe.
-app.options("/*", cors(corsOptions));
 
 app.use(express.json());
 
