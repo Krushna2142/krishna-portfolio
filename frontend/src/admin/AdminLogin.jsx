@@ -1,12 +1,35 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 import { useState } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 export default function AdminLogin({ setToken }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const navigate = typeof useNavigate === "function" ? useNavigate() : null;
 
   const API = "https://krishna-portfolio-backend-ined.onrender.com/api/admin";
+
+  const redirectToDashboard = () => {
+    console.log("Redirecting to dashboard...");
+    // Prefer client-side router if available
+    try {
+      if (navigate) {
+        navigate("/admin/dashboard");
+        return;
+      }
+    } catch (e) {
+      console.warn("useNavigate failed:", e);
+    }
+
+    // Fallback
+    try {
+      window.location.href = "/admin/dashboard";
+    } catch (e) {
+      console.error("window.location redirect failed:", e);
+    }
+  };
 
   const handleLogin = async () => {
     setLoading(true);
@@ -19,28 +42,35 @@ export default function AdminLogin({ setToken }) {
 
       console.log("Login success response:", data);
 
-      if (data?.token) {
-        try {
-          localStorage.setItem("token", data.token);
-        } catch (e) {
-          console.warn("Could not write token to localStorage:", e);
-        }
-
-        if (typeof setToken === "function") {
-          try {
-            setToken(data.token);
-          } catch (e) {
-            console.warn("setToken threw an error (ignored):", e);
-          }
-        }
-
-        window.location.href = "/admin/dashboard";
+      if (!data?.token) {
+        alert(data?.message || "Login succeeded but no token returned");
         return;
       }
 
-      alert(data?.message || "Login succeeded but no token returned");
+      // Save token reliably
+      try {
+        localStorage.setItem("token", data.token);
+        console.log("Token saved to localStorage");
+      } catch (e) {
+        console.warn("Could not write token to localStorage:", e);
+      }
+
+      // Call setToken if safe
+      if (typeof setToken === "function") {
+        try {
+          setToken(data.token);
+          console.log("setToken called");
+        } catch (e) {
+          console.warn("setToken threw an error (ignored):", e);
+        }
+      } else {
+        console.log("setToken not provided or not a function; skipping");
+      }
+
+      // Redirect after token stored
+      redirectToDashboard();
     } catch (err) {
-      console.error("Login error object (from frontend):", err);
+      console.error("Login error (frontend):", err);
       console.error("Response (if any):", err?.response);
       const serverMessage =
         err?.response?.data?.message || err?.response?.data?.error || "Login failed";
