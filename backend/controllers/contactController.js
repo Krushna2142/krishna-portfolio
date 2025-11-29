@@ -1,4 +1,4 @@
-const Message = require("../models/Message");
+const Message = require("../models/Contact");
 const nodemailer = require("nodemailer");
 
 // Contact Form Submit
