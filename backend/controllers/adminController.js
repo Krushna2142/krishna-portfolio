@@ -16,24 +16,38 @@ exports.registerAdmin = async (req, res) => {
 
     res.json({ message: "Admin created" });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("registerAdmin error:", err);
+    res.status(500).json({ message: err.message });
   }
 };
 
 exports.loginAdmin = async (req, res) => {
   try {
+    // Debugging: log incoming origin & body so we can confirm browser requests arrive
+    console.log("Login request:", {
+      method: req.method,
+      origin: req.headers.origin,
+      body: req.body,
+    });
+
     const { username, password } = req.body;
 
     const admin = await Admin.findOne({ username });
-    if (!admin) return res.status(400).json({ error: "Invalid username" });
+    if (!admin) return res.status(400).json({ message: "Invalid username" });
 
     const match = await bcrypt.compare(password, admin.password);
-    if (!match) return res.status(400).json({ error: "Invalid password" });
+    if (!match) return res.status(400).json({ message: "Invalid password" });
+
+    if (!process.env.JWT_SECRET) {
+      console.error("JWT_SECRET is not set in environment!");
+      return res.status(500).json({ message: "Authentication configuration error" });
+    }
 
     const token = jwt.sign({ id: admin._id }, process.env.JWT_SECRET);
 
     res.json({ token });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("loginAdmin error:", err);
+    res.status(500).json({ message: err.message });
   }
 };

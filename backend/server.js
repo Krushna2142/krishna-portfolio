@@ -8,16 +8,20 @@ const contactRoutes = require("./routes/contactRoutes");
 
 const app = express();
 
-// CORS FIX
-app.use(
-  cors({
-    origin: "https://krishna-portfolio-peach-one.vercel.app",
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-    credentials: true
-  })
-);
+const FRONTEND_ORIGIN = "https://krishna-portfolio-peach-one.vercel.app";
 
+const corsOptions = {
+  origin: FRONTEND_ORIGIN,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"], // include OPTIONS
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true,
+};
+
+// Use CORS for all routes
+app.use(cors(corsOptions));
+
+// Explicitly handle preflight requests
+app.options("*", cors(corsOptions));
 
 app.use(express.json());
 

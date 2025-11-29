@@ -9,7 +9,10 @@ export default function AdminLogin({ setToken }) {
     try {
       const { data } = await axios.post(
         "https://krishna-portfolio-backend-ined.onrender.com/api/admin/login",
-        { username, password }
+        { username, password },
+        {
+          headers: { "Content-Type": "application/json" },
+        }
       );
 
       localStorage.setItem("token", data.token);
@@ -17,7 +20,15 @@ export default function AdminLogin({ setToken }) {
 
       window.location.href = "/admin/dashboard";
     } catch (err) {
-      alert(err?.response?.data?.message || "Login failed");
+      // Log full error for debugging in Console
+      console.error("Login error object:", err);
+      console.error("Response (if any):", err?.response);
+
+      // Prefer server message, but fallback to server error key or generic text
+      const serverMessage =
+        err?.response?.data?.message || err?.response?.data?.error || "Login failed";
+
+      alert(serverMessage);
     }
   };
 
