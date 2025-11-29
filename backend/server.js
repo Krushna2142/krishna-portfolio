@@ -21,7 +21,20 @@ const corsOptions = {
 // Removing explicit app.options(...) avoids path-to-regexp PathError seen in deploy logs.
 app.use(cors(corsOptions));
 
-app.use(express.json());
+// Add this near the top, after `const app = express();`
+
+// TEMPORARY request logger for debugging CORS/auth issues
+app.use(express.json()); // ensure body is parsed for logging
+app.use((req, res, next) => {
+  console.log("REQ:", {
+    method: req.method,
+    url: req.originalUrl,
+    origin: req.headers.origin,
+    contentType: req.headers["content-type"],
+    bodyPreview: req.body && Object.keys(req.body).length ? req.body : undefined,
+  });
+  next();
+});
 
 // Connect DB
 connectDB();
