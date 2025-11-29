@@ -43,49 +43,73 @@ export default function AdminDashboard({ token }) {
 
   return (
     <div className="min-h-screen bg-gray-900 text-white p-6">
-      <h1 className="text-3xl mb-4">Dashboard</h1>
-      <div className="mb-4">
-        <span>Total: {stats.total}</span>{" | "}
-        <span>Today: {stats.today}</span>{" | "}
-        <span>Unread: {stats.unread}</span>
+      <h1 className="text-4xl font-bold mb-6 text-center">Admin Dashboard</h1>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
+        <div className="bg-gray-800 p-6 rounded-lg shadow hover:scale-105 transition-transform">
+          <h2 className="text-xl font-semibold">Total Messages</h2>
+          <p className="text-3xl mt-2">{stats.total}</p>
+        </div>
+        <div className="bg-gray-800 p-6 rounded-lg shadow hover:scale-105 transition-transform">
+          <h2 className="text-xl font-semibold">Today's Messages</h2>
+          <p className="text-3xl mt-2">{stats.today}</p>
+        </div>
+        <div className="bg-gray-800 p-6 rounded-lg shadow hover:scale-105 transition-transform">
+          <h2 className="text-xl font-semibold">Unread Messages</h2>
+          <p className="text-3xl mt-2">{stats.unread}</p>
+        </div>
       </div>
-      <table className="w-full text-left border border-gray-700">
-        <thead>
-          <tr className="border-b border-gray-700">
-            <th className="p-2">Name</th>
-            <th>Email</th>
-            <th>Message</th>
-            <th>Status</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {messages.map((m) => (
-            <tr key={m._id} className="border-b border-gray-700">
-              <td className="p-2">{m.name}</td>
-              <td className="p-2">{m.email}</td>
-              <td className="p-2">{m.message}</td>
-              <td className="p-2">{m.read ? "Read" : "Unread"}</td>
-              <td className="p-2">
-                {!m.read && (
-                  <button
-                    onClick={() => markRead(m._id)}
-                    className="bg-green-600 p-1 rounded mr-2"
-                  >
-                    Mark Read
-                  </button>
-                )}
-                <button
-                  onClick={() => deleteMessage(m._id)}
-                  className="bg-red-600 p-1 rounded"
-                >
-                  Delete
-                </button>
-              </td>
+
+      {/* Messages Table */}
+      <div className="overflow-x-auto">
+        <table className="min-w-full bg-gray-800 rounded-lg overflow-hidden">
+          <thead className="bg-gray-700">
+            <tr>
+              <th className="p-3 text-left">Name</th>
+              <th className="p-3 text-left">Email</th>
+              <th className="p-3 text-left">Message</th>
+              <th className="p-3 text-left">Status</th>
+              <th className="p-3 text-left">Actions</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {messages.map((m) => (
+              <tr key={m._id} className="border-b border-gray-700 hover:bg-gray-700 transition-colors">
+                <td className="p-3">{m.name}</td>
+                <td className="p-3">{m.email}</td>
+                <td className="p-3">{m.message}</td>
+                <td className={`p-3 font-semibold ${m.read ? "text-green-400" : "text-yellow-400"}`}>
+                  {m.read ? "Read" : "Unread"}
+                </td>
+                <td className="p-3 flex gap-2">
+                  {!m.read && (
+                    <button
+                      onClick={() => markRead(m._id)}
+                      className="bg-green-600 px-3 py-1 rounded hover:bg-green-500 transition-colors"
+                    >
+                      Mark Read
+                    </button>
+                  )}
+                  <button
+                    onClick={() => deleteMessage(m._id)}
+                    className="bg-red-600 px-3 py-1 rounded hover:bg-red-500 transition-colors"
+                  >
+                    Delete
+                  </button>
+                </td>
+              </tr>
+            ))}
+            {messages.length === 0 && (
+              <tr>
+                <td colSpan={5} className="p-3 text-center text-gray-400">
+                  No messages found.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
