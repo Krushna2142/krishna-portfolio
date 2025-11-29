@@ -1,79 +1,91 @@
-/* eslint-disable no-unused-vars */
-// src/pages/admin/AdminDashboard.jsx
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-import { toast } from 'react-toastify';
+// src/pages/AdminDashboard.jsx
+import { useEffect, useState } from "react";
+import axios from "axios";
 
-const AdminDashboard = () => {
+export default function AdminDashboard({ token }) {
   const [messages, setMessages] = useState([]);
+  const [stats, setStats] = useState({ total: 0, today: 0, unread: 0 });
 
   const fetchMessages = async () => {
-    try {
-      const token = localStorage.getItem('adminToken');
-      const res = await axios.get('https://krishna-portfolio-1qbx.onrender.com/api/messages', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setMessages(res.data);
-    } catch (error) {
-      toast.error('Failed to fetch messages');
-    }
+    const { data } = await axios.get("/api/messages", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    setMessages(data);
   };
 
-  const handleDelete = async (id) => {
-    try {
-      const token = localStorage.getItem('adminToken');
-      await axios.delete(`https://krishna-portfolio-1qbx.onrender.com/api/messages/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setMessages(messages.filter((msg) => msg._id !== id));
-      toast.success('Message deleted');
-    } catch (err) {
-      toast.error('Error deleting message');
-    }
+  const fetchStats = async () => {
+    const { data } = await axios.get("/api/messages/stats", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    setStats(data);
   };
 
   useEffect(() => {
     fetchMessages();
+    fetchStats();
   }, []);
+
+  const markRead = async (id) => {
+    await axios.put(`/api/messages/read/${id}`, {}, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    fetchMessages();
+    fetchStats();
+  };
+
+  const deleteMessage = async (id) => {
+    await axios.delete(`/api/messages/${id}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    fetchMessages();
+    fetchStats();
+  };
 
   return (
     <div className="min-h-screen bg-gray-900 text-white p-6">
-      <h2 className="text-3xl font-bold mb-4">Admin Dashboard</h2>
-      {messages.length === 0 ? (
-        <p>No messages found.</p>
-      ) : (
-        <div className="overflow-x-auto">
-          <table className="min-w-full bg-gray-800 rounded">
-            <thead>
-              <tr>
-                <th className="p-3">Name</th>
-                <th className="p-3">Email</th>
-                <th className="p-3">Message</th>
-                <th className="p-3">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {messages.map((msg) => (
-                <tr key={msg._id} className="border-t border-gray-700">
-                  <td className="p-3">{msg.name}</td>
-                  <td className="p-3">{msg.email}</td>
-                  <td className="p-3">{msg.message}</td>
-                  <td className="p-3">
-                    <button
-                      onClick={() => handleDelete(msg._id)}
-                      className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded text-sm"
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+      <h1 className="text-3xl mb-4">Dashboard</h1>
+      <div className="mb-4">
+        <span>Total: {stats.total}</span>{" | "}
+        <span>Today: {stats.today}</span>{" | "}
+        <span>Unread: {stats.unread}</span>
+      </div>
+      <table className="w-full text-left border border-gray-700">
+        <thead>
+          <tr className="border-b border-gray-700">
+            <th className="p-2">Name</th>
+            <th>Email</th>
+            <th>Message</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {messages.map((m) => (
+            <tr key={m._id} className="border-b border-gray-700">
+              <td className="p-2">{m.name}</td>
+              <td className="p-2">{m.email}</td>
+              <td className="p-2">{m.message}</td>
+              <td className="p-2">{m.read ? "Read" : "Unread"}</td>
+              <td className="p-2">
+                {!m.read && (
+                  <button
+                    onClick={() => markRead(m._id)}
+                    className="bg-green-600 p-1 rounded mr-2"
+                  >
+                    Mark Read
+                  </button>
+                )}
+                <button
+                  onClick={() => deleteMessage(m._id)}
+                  className="bg-red-600 p-1 rounded"
+                >
+                  Delete
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
-};
-
-export default AdminDashboard;
+}
