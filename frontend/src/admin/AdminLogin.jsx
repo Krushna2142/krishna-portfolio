@@ -1,38 +1,46 @@
-/* eslint-disable react-hooks/rules-of-hooks */
 import { useState } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+
+/**
+ * Robust AdminLogin
+ * - Stores token in localStorage
+ * - Calls setToken if provided (safely)
+ * - Forces full page navigation / reload so app can re-read token from storage
+ * - Logs every step to console for debugging
+ *
+ * NOTE: After verifying that login + redirect works, you can remove some console.log calls.
+ */
 
 export default function AdminLogin({ setToken }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const navigate = typeof useNavigate === "function" ? useNavigate() : null;
 
   const API = "https://krishna-portfolio-backend-ined.onrender.com/api/admin";
 
   const redirectToDashboard = () => {
-    console.log("Redirecting to dashboard...");
-    // Prefer client-side router if available
-    try {
-      if (navigate) {
-        navigate("/admin/dashboard");
-        return;
-      }
-    } catch (e) {
-      console.warn("useNavigate failed:", e);
-    }
+    console.log("redirectToDashboard: attempting client-side router redirect...");
 
-    // Fallback
+    // Try client-side router navigation if available (React Router's navigate function is not
+    // imported here, so we try a fallback: change history via pushState then reload).
     try {
-      window.location.href = "/admin/dashboard";
-    } catch (e) {
-      console.error("window.location redirect failed:", e);
+      // If your app uses client-side routing and expects a soft navigation, setting location
+      // will still work; we force a reload to ensure auth state is picked up on mount.
+      window.location.replace("/admin/dashboard");
+      // If replace succeeds, code below won't run. We leave logs in case browser blocks.
+    } catch (err) {
+      console.warn("redirectToDashboard: window.location.replace failed:", err);
+      try {
+        window.location.href = "/admin/dashboard";
+      } catch (err2) {
+        console.error("redirectToDashboard: window.location.href failed:", err2);
+      }
     }
   };
 
   const handleLogin = async () => {
     setLoading(true);
+    console.log("handleLogin: starting login for user:", username);
     try {
       const { data } = await axios.post(
         `${API}/login`,
@@ -40,41 +48,45 @@ export default function AdminLogin({ setToken }) {
         { headers: { "Content-Type": "application/json" } }
       );
 
-      console.log("Login success response:", data);
+      console.log("handleLogin: response data:", data);
 
-      if (!data?.token) {
-        alert(data?.message || "Login succeeded but no token returned");
+      if (!data || !data.token) {
+        console.warn("handleLogin: no token in response; showing message");
+        alert(data?.message || "Login failed: no token returned");
+        setLoading(false);
         return;
       }
 
-      // Save token reliably
+      // Save to localStorage first
       try {
         localStorage.setItem("token", data.token);
-        console.log("Token saved to localStorage");
+        console.log("handleLogin: token saved to localStorage");
       } catch (e) {
-        console.warn("Could not write token to localStorage:", e);
+        console.warn("handleLogin: could not save token to localStorage:", e);
       }
 
-      // Call setToken if safe
+      // Call setToken if passed and safe
       if (typeof setToken === "function") {
         try {
           setToken(data.token);
-          console.log("setToken called");
+          console.log("handleLogin: setToken called");
         } catch (e) {
-          console.warn("setToken threw an error (ignored):", e);
+          console.warn("handleLogin: setToken threw an error (ignored):", e);
         }
       } else {
-        console.log("setToken not provided or not a function; skipping");
+        console.log("handleLogin: setToken prop not provided or not a function");
       }
 
-      // Redirect after token stored
-      redirectToDashboard();
+      // Force navigation to dashboard (full reload) so the app will re-run auth init code
+      console.log("handleLogin: redirecting to /admin/dashboard (full reload) ...");
+      // Give a tiny delay so logs flush
+      setTimeout(() => {
+        redirectToDashboard();
+      }, 150);
     } catch (err) {
-      console.error("Login error (frontend):", err);
-      console.error("Response (if any):", err?.response);
-      const serverMessage =
-        err?.response?.data?.message || err?.response?.data?.error || "Login failed";
-      alert(serverMessage);
+      console.error("handleLogin: caught error:", err);
+      console.error("handleLogin: response (if any):", err?.response?.data || err?.response);
+      alert(err?.response?.data?.message || "Login failed");
     } finally {
       setLoading(false);
     }
