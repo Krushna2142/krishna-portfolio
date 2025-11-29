@@ -7,7 +7,20 @@ const adminRoutes = require("./routes/adminRoutes");
 const contactRoutes = require("./routes/contactRoutes");
 
 const app = express();
-app.use(cors());
+
+// CORS FIX (IMPORTANT)
+app.use(
+  cors({
+    origin: "https://krishna-portfolio-peach-one.vercel.app",
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true
+  })
+);
+
+// Handle OPTIONS preflight
+app.options("*", cors());
+
 app.use(express.json());
 
 // Connect DB
