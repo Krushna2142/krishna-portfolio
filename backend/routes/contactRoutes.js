@@ -1,9 +1,16 @@
 const express = require("express");
-const { sendMessage, getMessages } = require("../controllers/contactController");
-
 const router = express.Router();
 
-router.post("/", sendMessage);
-router.get("/", getMessages);
+const {
+  sendMessage,
+  getMessages,
+  markRead,
+  deleteMessage
+} = require("../controllers/contactController");
+
+router.post("/send", sendMessage);
+router.get("/all", getMessages);
+router.put("/read/:id", markRead);
+router.delete("/delete/:id", deleteMessage);
 
 module.exports = router;

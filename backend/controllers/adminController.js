@@ -2,54 +2,38 @@ const Admin = require("../models/Admin");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
-// REGISTER ADMIN (run only once)
+// ONLY RUN ONCE to create admin
 exports.registerAdmin = async (req, res) => {
   try {
     const { username, password } = req.body;
 
-    const adminExists = await Admin.findOne({ username });
-    if (adminExists) {
-      return res.status(400).json({ message: "Admin already exists" });
-    }
+    const exists = await Admin.findOne({ username });
+    if (exists) return res.json({ message: "Admin already exists" });
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashed = await bcrypt.hash(password, 10);
 
-    const newAdmin = new Admin({
-      username,
-      password: hashedPassword,
-    });
+    await Admin.create({ username, password: hashed });
 
-    await newAdmin.save();
-
-    res.status(201).json({ message: "Admin registered successfully" });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.json({ message: "Admin created" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 };
 
-// LOGIN ADMIN
 exports.loginAdmin = async (req, res) => {
   try {
     const { username, password } = req.body;
 
     const admin = await Admin.findOne({ username });
-    if (!admin) {
-      return res.status(400).json({ message: "Invalid username" });
-    }
+    if (!admin) return res.status(400).json({ error: "Invalid username" });
 
-    const isMatch = await bcrypt.compare(password, admin.password);
-    if (!isMatch) {
-      return res.status(400).json({ message: "Invalid password" });
-    }
+    const match = await bcrypt.compare(password, admin.password);
+    if (!match) return res.status(400).json({ error: "Invalid password" });
 
-    const token = jwt.sign(
-      { id: admin._id },
-      process.env.JWT_SECRET,
-      { expiresIn: "7d" }
-    );
+    const token = jwt.sign({ id: admin._id }, process.env.JWT_SECRET);
 
-    res.json({ message: "Login success", token });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.json({ token });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 };

@@ -1,32 +1,50 @@
 const Message = require("../models/Message");
 const nodemailer = require("nodemailer");
 
+// Contact Form Submit
 exports.sendMessage = async (req, res) => {
   try {
-    const { name, email, subject, message } = req.body;
+    const { name, email, message } = req.body;
 
     // Save to DB
-    const newMessage = await Message.create({ name, email, subject, message, read: false });
+    await Message.create({ name, email, message });
 
-    // Send email
+    // Email notify
     const transporter = nodemailer.createTransport({
-      service: "Gmail",
+      service: "gmail",
       auth: {
         user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
+        pass: process.env.EMAIL_APP_PASSWORD
+      }
     });
 
     await transporter.sendMail({
-      from: process.env.EMAIL_USER,
-      to: process.env.EMAIL_USER, // your email to receive messages
-      subject: `Portfolio Contact: ${subject}`,
-      text: `Name: ${name}\nEmail: ${email}\n\n${message}`,
+      from: email,
+      to: process.env.EMAIL_USER,
+      subject: "Portfolio Contact Message",
+      text: `Name: ${name}\nEmail: ${email}\nMessage: ${message}`
     });
 
-    res.status(200).json({ message: "Message sent successfully" });
+    res.json({ success: true, message: "Message sent!" });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Server error" });
+    res.status(500).json({ error: err.message });
   }
+};
+
+// Admin fetch messages
+exports.getMessages = async (req, res) => {
+  const messages = await Message.find().sort({ createdAt: -1 });
+  res.json(messages);
+};
+
+// Mark read
+exports.markRead = async (req, res) => {
+  await Message.findByIdAndUpdate(req.params.id, { read: true });
+  res.json({ success: true });
+};
+
+// Delete message
+exports.deleteMessage = async (req, res) => {
+  await Message.findByIdAndDelete(req.params.id);
+  res.json({ success: true });
 };

@@ -1,9 +1,9 @@
 const express = require("express");
-const { registerAdmin, loginAdmin } = require("../controllers/adminController");
-
 const router = express.Router();
 
-router.post("/register", registerAdmin);
+const { registerAdmin, loginAdmin } = require("../controllers/adminController");
+
+router.post("/register", registerAdmin);  // Run once then remove
 router.post("/login", loginAdmin);
 
 module.exports = router;
