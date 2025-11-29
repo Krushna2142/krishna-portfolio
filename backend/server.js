@@ -8,7 +8,7 @@ const contactRoutes = require("./routes/contactRoutes");
 
 const app = express();
 
-// CORS FIX (IMPORTANT)
+// CORS FIX
 app.use(
   cors({
     origin: "https://krishna-portfolio-peach-one.vercel.app",
@@ -17,9 +17,6 @@ app.use(
     credentials: true
   })
 );
-
-// Handle OPTIONS preflight
-app.options("*", cors());
 
 app.use(express.json());
 
