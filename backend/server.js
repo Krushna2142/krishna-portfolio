@@ -17,11 +17,12 @@ const corsOptions = {
   credentials: true,
 };
 
-// Use CORS for all routes
+// Use CORS for all routes (this automatically handles preflight for most setups)
 app.use(cors(corsOptions));
 
-// Explicitly handle preflight requests
-app.options("*", cors(corsOptions));
+// If you still want an explicit preflight handler, use a wildcard path that Express/path-to-regexp accepts.
+// Using '*' caused the PathError; '/ *' (string) or a regex is accepted. Using '/*' is safe.
+app.options("/*", cors(corsOptions));
 
 app.use(express.json());
 
