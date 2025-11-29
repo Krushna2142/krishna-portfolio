@@ -1,4 +1,3 @@
-// src/pages/AdminLogin.jsx
 import { useState } from "react";
 import axios from "axios";
 
@@ -8,10 +7,17 @@ export default function AdminLogin({ setToken }) {
 
   const handleLogin = async () => {
     try {
-      const { data } = await axios.post("/api/admin/login", { username, password });
+      const { data } = await axios.post(
+        "https://krishna-portfolio-backend-ined.onrender.com/api/admin/login",
+        { username, password }
+      );
+
+      localStorage.setItem("token", data.token);
       setToken(data.token);
+
+      window.location.href = "/admin/dashboard";
     } catch (err) {
-      alert(err.response.data.message);
+      alert(err?.response?.data?.message || "Login failed");
     }
   };
 
@@ -19,6 +25,7 @@ export default function AdminLogin({ setToken }) {
     <div className="min-h-screen bg-gray-900 flex items-center justify-center text-white">
       <div className="p-8 rounded-lg bg-gray-800 w-96">
         <h2 className="text-2xl mb-6">Admin Login</h2>
+
         <input
           type="text"
           placeholder="Username"
@@ -26,6 +33,7 @@ export default function AdminLogin({ setToken }) {
           value={username}
           onChange={(e) => setUsername(e.target.value)}
         />
+
         <input
           type="password"
           placeholder="Password"
@@ -33,6 +41,7 @@ export default function AdminLogin({ setToken }) {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
+
         <button
           className="w-full bg-blue-600 p-2 rounded hover:bg-blue-500"
           onClick={handleLogin}
