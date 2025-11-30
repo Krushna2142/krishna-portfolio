@@ -1,35 +1,42 @@
-// src/pages/AdminLogin.jsx
-import { useState } from "react";
+import React, { useState } from "react";
 import axios from "axios";
-
-const API_URL = "https://krishna-portfolio-backend-ined.onrender.com/api/admin";
+import { useNavigate } from "react-router-dom";
+import { setAxiosToken } from "../setupAxios"; // adjust path if needed
 
 export default function AdminLogin() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
+  const API = "https://krishna-portfolio-backend-ined.onrender.com/api/admin";
+
+  const handleSubmit = async (e) => {
+    if (e && e.preventDefault) e.preventDefault();
     setLoading(true);
-
     try {
-      const { data } = await axios.post(`${API_URL}/login`, {
-        username,
-        password,
-      });
+      const { data } = await axios.post(
+        `${API}/login`,
+        { username, password },
+        { headers: { "Content-Type": "application/json" } }
+      );
+
+      console.log("Login response:", data);
 
       if (!data?.token) {
-        alert("Login failed: no token returned");
+        alert(data?.message || "Login failed: no token returned");
         setLoading(false);
         return;
       }
 
-      localStorage.setItem("adminToken", data.token);
-      window.location.replace("/admin/dashboard"); // redirect
+      // Persist token and set axios Authorization header immediately
+      setAxiosToken(data.token);
+
+      // Navigate to dashboard (client-side)
+      navigate("/admin/dashboard", { replace: true });
     } catch (err) {
-      console.error(err);
-      alert(err?.response?.data?.message || "Invalid Admin Credentials");
+      console.error("Login error:", err);
+      alert(err?.response?.data?.message || "Login failed");
     } finally {
       setLoading(false);
     }
@@ -37,31 +44,33 @@ export default function AdminLogin() {
 
   return (
     <div className="min-h-screen bg-gray-900 flex items-center justify-center text-white">
-      <div className="p-8 rounded-lg bg-gray-800 w-96 shadow-xl">
-        <h2 className="text-3xl mb-6 font-semibold text-center">Admin Login</h2>
+      <div className="p-8 rounded-lg bg-gray-800 w-96">
+        <h2 className="text-2xl mb-6">Admin Login</h2>
 
-        <form onSubmit={handleLogin}>
+        <form onSubmit={handleSubmit}>
           <input
+            name="username"
             type="text"
             placeholder="Username"
-            className="w-full p-2 mb-4 rounded bg-gray-700"
+            autoComplete="username"
+            className="w-full mb-4 p-2 rounded bg-gray-700"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
-            autoComplete="username"
           />
 
           <input
+            name="password"
             type="password"
             placeholder="Password"
-            className="w-full p-2 mb-4 rounded bg-gray-700"
+            autoComplete="current-password"
+            className="w-full mb-4 p-2 rounded bg-gray-700"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            autoComplete="current-password"
           />
 
           <button
             type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-500 p-2 rounded disabled:opacity-60"
+            className="w-full bg-blue-600 p-2 rounded hover:bg-blue-500 disabled:opacity-60"
             disabled={loading}
           >
             {loading ? "Logging in..." : "Login"}

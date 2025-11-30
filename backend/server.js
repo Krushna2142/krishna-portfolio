@@ -8,25 +8,44 @@ const contactRoutes = require("./routes/contactRoutes");
 
 const app = express();
 
-const FRONTEND_ORIGIN = "https://krishna-portfolio-peach-one.vercel.app";
+// Use an environment variable for the frontend origin to avoid hardcoding.
+// In Render, set FRONTEND_ORIGIN to: https://krishna-portfolio-peach-one.vercel.app
+const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN || "https://krishna-portfolio-peach-one.vercel.app";
 
+// CORS configuration
 const corsOptions = {
-  origin: FRONTEND_ORIGIN,
+  origin: (origin, callback) => {
+    // Allow same-origin requests (origin may be undefined for server-to-server)
+    if (!origin || origin === FRONTEND_ORIGIN) return callback(null, true);
+    // For troubleshooting you could allow all origins by returning callback(null, true),
+    // but DO NOT use that in production. Prefer explicitly listing your frontend.
+    return callback(new Error("Not allowed by CORS"));
+  },
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true,
 };
 
-// Use CORS for all routes (this automatically handles preflight)
+// Apply CORS middleware for all routes BEFORE routes are registered
 app.use(cors(corsOptions));
 
-// parse JSON bodies
+// If you still need to match preflight for every path explicitly, use a valid regex.
+// (Usually unnecessary when app.use(cors()) is present)
+app.options(/.*/, cors(corsOptions)); // valid pattern, not '*'
+
+// Parse JSON bodies
 app.use(express.json());
+
+// Optional: lightweight request logger for debugging (safe to keep)
+app.use((req, res, next) => {
+  console.log("REQ:", { method: req.method, url: req.originalUrl, origin: req.headers.origin });
+  next();
+});
 
 // Connect DB
 connectDB();
 
-// Routes
+// Register routes AFTER cors middleware
 app.use("/api/admin", adminRoutes);
 app.use("/api/contact", contactRoutes);
 
@@ -34,8 +53,5 @@ app.get("/", (req, res) => {
   res.send("Backend Running...");
 });
 
-// Start server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log("Server running on port", PORT);
-});
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
