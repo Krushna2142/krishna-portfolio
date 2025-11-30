@@ -12,65 +12,135 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { LogOut, Inbox, BarChart2, Menu } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
-export default function AdminDashboard({ token }) {
+/**
+ * AdminDashboard (robust)
+ * - Reads token from localStorage if not provided as prop
+ * - Sets axios default Authorization header
+ * - Handles API responses defensively (payload or data)
+ * - Catches 401 and redirects to login
+ */
+
+export default function AdminDashboard({ token: tokenProp }) {
   const API = "https://krishna-portfolio-backend-ined.onrender.com/api/contact";
+  const navigate = useNavigate();
 
   const [messages, setMessages] = useState([]);
   const [stats, setStats] = useState({ total: 0, today: 0, unread: 0 });
   const [chartData, setChartData] = useState([]);
   const [openSidebar, setOpenSidebar] = useState(false);
 
+  // Ensure axios has Authorization header set from localStorage or prop
+  useEffect(() => {
+    const token = tokenProp || localStorage.getItem("token");
+    if (token) {
+      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+      console.log("AdminDashboard: axios Authorization set from token");
+    } else {
+      delete axios.defaults.headers.common["Authorization"];
+      console.warn("AdminDashboard: no token found in props/localStorage");
+    }
+  }, [tokenProp]);
+
+  const handleAuthError = (err) => {
+    // If backend returned 401, redirect to login
+    if (err?.response?.status === 401) {
+      console.warn("Unauthorized - redirecting to login");
+      localStorage.removeItem("token");
+      navigate("/admin/login", { replace: true });
+    } else {
+      console.error("API error:", err);
+    }
+  };
+
+  // Utility to read payload safely
+  const unwrap = (res) => {
+    // axios returns { data: ... }
+    const d = res?.data ?? null;
+    // common API shape: { success: true, payload: ... }
+    if (d == null) return null;
+    if (d.payload !== undefined) return d.payload;
+    // fallback: maybe the endpoint returns array/object directly
+    return d;
+  };
+
   // -------------------------------
   // Fetch Messages + Stats + Chart
   // -------------------------------
   const fetchMessages = async () => {
-    const { data } = await axios.get(`${API}/all`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    setMessages(data);
+    try {
+      const res = await axios.get(`${API}/all`);
+      const payload = unwrap(res);
+      // Ensure we set an array
+      setMessages(Array.isArray(payload) ? payload : payload?.items ?? []);
+    } catch (err) {
+      handleAuthError(err);
+    }
   };
 
   const fetchStats = async () => {
-    const { data } = await axios.get(`${API}/stats`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    setStats(data);
+    try {
+      const res = await axios.get(`${API}/stats`);
+      const payload = unwrap(res);
+      // payload may be { total, unread, today } or res.data directly
+      setStats({
+        total: payload?.total ?? payload?.count ?? 0,
+        today: payload?.today ?? 0,
+        unread: payload?.unread ?? 0,
+      });
+    } catch (err) {
+      handleAuthError(err);
+    }
   };
 
   const fetchChart = async () => {
-    const { data } = await axios.get(`${API}/chart/daily`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    setChartData(data);
+    try {
+      const res = await axios.get(`${API}/chart/daily`);
+      const payload = unwrap(res);
+      // payload expected to be array of { _id, count }
+      setChartData(Array.isArray(payload) ? payload : []);
+    } catch (err) {
+      // If the backend doesn't implement chart, just log and continue
+      if (err?.response?.status === 404) {
+        console.info("/chart/daily not found on backend; skipping chart");
+        setChartData([]);
+        return;
+      }
+      handleAuthError(err);
+    }
   };
 
   useEffect(() => {
+    // Load all dashboard data
     fetchMessages();
     fetchStats();
     fetchChart();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // -------------------------------
   // Actions
   // -------------------------------
   const markRead = async (id) => {
-    await axios.put(
-      `${API}/read/${id}`,
-      {},
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
-    fetchMessages();
-    fetchStats();
+    try {
+      await axios.put(`${API}/read/${id}`, {});
+      await fetchMessages();
+      await fetchStats();
+    } catch (err) {
+      handleAuthError(err);
+    }
   };
 
   const deleteMessage = async (id) => {
-    await axios.delete(`${API}/${id}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    fetchMessages();
-    fetchStats();
-    fetchChart();
+    try {
+      await axios.delete(`${API}/${id}`);
+      await fetchMessages();
+      await fetchStats();
+      await fetchChart();
+    } catch (err) {
+      handleAuthError(err);
+    }
   };
 
   // -------------------------------
@@ -78,7 +148,8 @@ export default function AdminDashboard({ token }) {
   // -------------------------------
   const handleLogout = () => {
     localStorage.removeItem("token");
-    window.location.href = "/admin/login";
+    delete axios.defaults.headers.common["Authorization"];
+    navigate("/admin/login");
   };
 
   return (
@@ -175,39 +246,39 @@ export default function AdminDashboard({ token }) {
             </thead>
 
             <tbody>
-              {messages.map((m) => (
-                <tr key={m._id} className="border-b border-gray-700">
-                  <td className="p-3">{m.name}</td>
-                  <td className="p-3">{m.email}</td>
-                  <td className="p-3">{m.message}</td>
-                  <td
-                    className={`p-3 font-semibold ${
-                      m.read ? "text-green-400" : "text-yellow-400"
-                    }`}
-                  >
-                    {m.read ? "Read" : "Unread"}
-                  </td>
-
-                  <td className="p-3 flex gap-3">
-                    {!m.read && (
-                      <button
-                        onClick={() => markRead(m._id)}
-                        className="bg-green-600 px-3 py-1 rounded hover:bg-green-500"
-                      >
-                        Mark Read
-                      </button>
-                    )}
-                    <button
-                      onClick={() => deleteMessage(m._id)}
-                      className="bg-red-600 px-3 py-1 rounded hover:bg-red-500"
+              {messages.length > 0 ? (
+                messages.map((m) => (
+                  <tr key={m._id} className="border-b border-gray-700">
+                    <td className="p-3">{m.name}</td>
+                    <td className="p-3">{m.email}</td>
+                    <td className="p-3">{m.message}</td>
+                    <td
+                      className={`p-3 font-semibold ${
+                        m.read ? "text-green-400" : "text-yellow-400"
+                      }`}
                     >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
+                      {m.read ? "Read" : "Unread"}
+                    </td>
 
-              {messages.length === 0 && (
+                    <td className="p-3 flex gap-3">
+                      {!m.read && (
+                        <button
+                          onClick={() => markRead(m._id)}
+                          className="bg-green-600 px-3 py-1 rounded hover:bg-green-500"
+                        >
+                          Mark Read
+                        </button>
+                      )}
+                      <button
+                        onClick={() => deleteMessage(m._id)}
+                        className="bg-red-600 px-3 py-1 rounded hover:bg-red-500"
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
                 <tr>
                   <td colSpan={5} className="p-3 text-center text-gray-400">
                     No messages found.
