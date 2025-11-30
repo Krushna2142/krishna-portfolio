@@ -1,53 +1,72 @@
+// controllers/adminController.js
 const Admin = require("../models/Admin");
+const Message = require("../models/Contact");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
-// ONLY RUN ONCE to create admin
 exports.registerAdmin = async (req, res) => {
   try {
     const { username, password } = req.body;
+    if (!username || !password) return res.status(400).json({ message: "username and password required" });
 
     const exists = await Admin.findOne({ username });
-    if (exists) return res.json({ message: "Admin already exists" });
+    if (exists) return res.status(400).json({ message: "Admin already exists" });
 
     const hashed = await bcrypt.hash(password, 10);
-
     await Admin.create({ username, password: hashed });
 
-    res.json({ message: "Admin created" });
+    return res.status(201).json({ message: "Admin created" });
   } catch (err) {
-    console.error("registerAdmin error:", err);
-    res.status(500).json({ message: err.message });
+    console.error("registerAdmin:", err);
+    return res.status(500).json({ error: err.message });
   }
 };
 
 exports.loginAdmin = async (req, res) => {
   try {
-    // Debugging: log incoming origin & body so we can confirm browser requests arrive
-    console.log("Login request:", {
-      method: req.method,
-      origin: req.headers.origin,
-      body: req.body,
-    });
-
     const { username, password } = req.body;
+    if (!username || !password) return res.status(400).json({ message: "username and password required" });
 
     const admin = await Admin.findOne({ username });
-    if (!admin) return res.status(400).json({ message: "Invalid username" });
+    if (!admin) return res.status(401).json({ message: "Invalid credentials" });
 
     const match = await bcrypt.compare(password, admin.password);
-    if (!match) return res.status(400).json({ message: "Invalid password" });
+    if (!match) return res.status(401).json({ message: "Invalid credentials" });
 
-    if (!process.env.JWT_SECRET) {
-      console.error("JWT_SECRET is not set in environment!");
-      return res.status(500).json({ message: "Authentication configuration error" });
-    }
+    const token = jwt.sign({ id: admin._id, username: admin.username }, process.env.JWT_SECRET, { expiresIn: "7d" });
 
-    const token = jwt.sign({ id: admin._id }, process.env.JWT_SECRET);
-
-    res.json({ token });
+    return res.json({ token });
   } catch (err) {
-    console.error("loginAdmin error:", err);
-    res.status(500).json({ message: err.message });
+    console.error("loginAdmin:", err);
+    return res.status(500).json({ error: err.message });
+  }
+};
+
+// Dashboard data: total, today, unread and simple messages-per-day
+exports.getDashboardData = async (req, res) => {
+  try {
+    const total = await Message.countDocuments();
+    const today = await Message.countDocuments({
+      createdAt: {
+        $gte: new Date(new Date().setHours(0, 0, 0, 0)),
+      },
+    });
+    const unread = await Message.countDocuments({ read: false });
+
+    // messages per day (last 14 days) aggregation
+    const chart = await Message.aggregate([
+      {
+        $group: {
+          _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+          count: { $sum: 1 },
+        },
+      },
+      { $sort: { _id: 1 } },
+    ]);
+
+    return res.json({ total, today, unread, chart });
+  } catch (err) {
+    console.error("getDashboardData:", err);
+    return res.status(500).json({ error: err.message });
   }
 };

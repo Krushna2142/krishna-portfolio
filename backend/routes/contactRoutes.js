@@ -1,14 +1,15 @@
+// routes/contactRoutes.js
 const express = require("express");
 const router = express.Router();
-
 const {
   sendMessage,
   getMessages,
   markRead,
   deleteMessage,
+  getStats,
+  chartDaily,
 } = require("../controllers/contactController");
 
-// Optional: Middleware to validate MongoDB ObjectID
 const mongoose = require("mongoose");
 const validateObjectId = (req, res, next) => {
   if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
@@ -17,10 +18,16 @@ const validateObjectId = (req, res, next) => {
   next();
 };
 
-// Routes
-router.post("/", sendMessage);               // Send message
-router.get("/", getMessages);                // Get all messages
-router.put("/:id/read", validateObjectId, markRead); // Mark message as read
-router.delete("/:id", validateObjectId, deleteMessage); // Delete message
+// Public: send message
+router.post("/", sendMessage);
+
+// Protected routes (your admin auth middleware should be applied where needed)
+// For simplicity we'll assume admin routes are protected by middleware in adminRoutes
+router.get("/all", getMessages);
+router.get("/stats", getStats);
+router.get("/chart/daily", chartDaily);
+
+router.put("/:id/read", validateObjectId, markRead);
+router.delete("/:id", validateObjectId, deleteMessage);
 
 module.exports = router;

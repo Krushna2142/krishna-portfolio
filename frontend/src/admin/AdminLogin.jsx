@@ -1,72 +1,35 @@
+// src/pages/AdminLogin.jsx
 import { useState } from "react";
 import axios from "axios";
 
-/**
- * AdminLogin (form-based)
- * - inputs are inside <form> so Enter submits and password managers behave
- * - name and autoComplete attributes added
- * - saves token, calls setToken safely, forces replace() to /admin/dashboard
- * - console.logs every step for debugging
- */
+const API_URL = "https://krishna-portfolio-backend-ined.onrender.com/api/admin";
 
-export default function AdminLogin({ setToken }) {
+export default function AdminLogin() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const API = "https://krishna-portfolio-backend-ined.onrender.com/api/admin";
-
-  const redirectToDashboard = () => {
-    console.log("redirectToDashboard: forcing navigation to /admin/dashboard");
-    // Use replace to avoid back button clutter
-    window.location.replace("/admin/dashboard");
-  };
-
-  const handleSubmit = async (e) => {
-    if (e && e.preventDefault) e.preventDefault();
+  const handleLogin = async (e) => {
+    e.preventDefault();
     setLoading(true);
-    console.log("handleLogin: starting for username:", username);
 
     try {
-      const { data } = await axios.post(
-        `${API}/login`,
-        { username, password },
-        { headers: { "Content-Type": "application/json" } }
-      );
-
-      console.log("handleLogin: response data:", data);
+      const { data } = await axios.post(`${API_URL}/login`, {
+        username,
+        password,
+      });
 
       if (!data?.token) {
-        console.warn("handleLogin: no token in response; showing message");
-        alert(data?.message || "Login failed: no token returned");
+        alert("Login failed: no token returned");
         setLoading(false);
         return;
       }
 
-      try {
-        localStorage.setItem("token", data.token);
-        console.log("handleLogin: token saved to localStorage");
-      } catch (err) {
-        console.warn("handleLogin: failed to write token to localStorage:", err);
-      }
-
-      if (typeof setToken === "function") {
-        try {
-          setToken(data.token);
-          console.log("handleLogin: setToken called");
-        } catch (err) {
-          console.warn("handleLogin: setToken threw error (ignored):", err);
-        }
-      } else {
-        console.log("handleLogin: setToken not provided or not a function");
-      }
-
-      // small delay ensures logs flush in console
-      setTimeout(() => redirectToDashboard(), 120);
+      localStorage.setItem("adminToken", data.token);
+      window.location.replace("/admin/dashboard"); // redirect
     } catch (err) {
-      console.error("handleLogin: request error:", err);
-      console.error("handleLogin: response (if any):", err?.response?.data || err?.response);
-      alert(err?.response?.data?.message || "Login failed");
+      console.error(err);
+      alert(err?.response?.data?.message || "Invalid Admin Credentials");
     } finally {
       setLoading(false);
     }
@@ -74,33 +37,31 @@ export default function AdminLogin({ setToken }) {
 
   return (
     <div className="min-h-screen bg-gray-900 flex items-center justify-center text-white">
-      <div className="p-8 rounded-lg bg-gray-800 w-96">
-        <h2 className="text-2xl mb-6">Admin Login</h2>
+      <div className="p-8 rounded-lg bg-gray-800 w-96 shadow-xl">
+        <h2 className="text-3xl mb-6 font-semibold text-center">Admin Login</h2>
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleLogin}>
           <input
-            name="username"
             type="text"
             placeholder="Username"
-            autoComplete="username"
-            className="w-full mb-4 p-2 rounded bg-gray-700"
+            className="w-full p-2 mb-4 rounded bg-gray-700"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
+            autoComplete="username"
           />
 
           <input
-            name="password"
             type="password"
             placeholder="Password"
-            autoComplete="current-password"
-            className="w-full mb-4 p-2 rounded bg-gray-700"
+            className="w-full p-2 mb-4 rounded bg-gray-700"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            autoComplete="current-password"
           />
 
           <button
             type="submit"
-            className="w-full bg-blue-600 p-2 rounded hover:bg-blue-500 disabled:opacity-60"
+            className="w-full bg-blue-600 hover:bg-blue-500 p-2 rounded disabled:opacity-60"
             disabled={loading}
           >
             {loading ? "Logging in..." : "Login"}
