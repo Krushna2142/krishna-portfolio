@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { setAxiosToken } from "../setupAxios"; // adjust path if needed
+import { setAxiosToken } from "../setupAxios";
 
 export default function AdminLogin() {
   const [username, setUsername] = useState("");
@@ -20,8 +20,6 @@ export default function AdminLogin() {
         { username, password },
         { headers: { "Content-Type": "application/json" } }
       );
-
-      console.log("Login response:", data);
 
       if (!data?.token) {
         alert(data?.message || "Login failed: no token returned");

@@ -14,14 +14,6 @@ import {
 import { LogOut, Inbox, BarChart2, Menu } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-/**
- * AdminDashboard (robust)
- * - Reads token from localStorage if not provided as prop
- * - Sets axios default Authorization header
- * - Handles API responses defensively (payload or data)
- * - Catches 401 and redirects to login
- */
-
 export default function AdminDashboard({ token: tokenProp }) {
   const API = "https://krishna-portfolio-backend-ined.onrender.com/api/contact";
   const navigate = useNavigate();
@@ -31,22 +23,17 @@ export default function AdminDashboard({ token: tokenProp }) {
   const [chartData, setChartData] = useState([]);
   const [openSidebar, setOpenSidebar] = useState(false);
 
-  // Ensure axios has Authorization header set from localStorage or prop
   useEffect(() => {
     const token = tokenProp || localStorage.getItem("token");
     if (token) {
       axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-      console.log("AdminDashboard: axios Authorization set from token");
     } else {
       delete axios.defaults.headers.common["Authorization"];
-      console.warn("AdminDashboard: no token found in props/localStorage");
     }
   }, [tokenProp]);
 
   const handleAuthError = (err) => {
-    // If backend returned 401, redirect to login
     if (err?.response?.status === 401) {
-      console.warn("Unauthorized - redirecting to login");
       localStorage.removeItem("token");
       navigate("/admin/login", { replace: true });
     } else {
@@ -54,26 +41,18 @@ export default function AdminDashboard({ token: tokenProp }) {
     }
   };
 
-  // Utility to read payload safely
   const unwrap = (res) => {
-    // axios returns { data: ... }
     const d = res?.data ?? null;
-    // common API shape: { success: true, payload: ... }
     if (d == null) return null;
     if (d.payload !== undefined) return d.payload;
-    // fallback: maybe the endpoint returns array/object directly
     return d;
   };
 
-  // -------------------------------
-  // Fetch Messages + Stats + Chart
-  // -------------------------------
   const fetchMessages = async () => {
     try {
       const res = await axios.get(`${API}/all`);
-      const payload = unwrap(res);
-      // Ensure we set an array
-      setMessages(Array.isArray(payload) ? payload : payload?.items ?? []);
+      const payload = unwrap(res) ?? [];
+      setMessages(Array.isArray(payload) ? payload : []);
     } catch (err) {
       handleAuthError(err);
     }
@@ -82,10 +61,9 @@ export default function AdminDashboard({ token: tokenProp }) {
   const fetchStats = async () => {
     try {
       const res = await axios.get(`${API}/stats`);
-      const payload = unwrap(res);
-      // payload may be { total, unread, today } or res.data directly
+      const payload = unwrap(res) ?? {};
       setStats({
-        total: payload?.total ?? payload?.count ?? 0,
+        total: payload?.total ?? 0,
         today: payload?.today ?? 0,
         unread: payload?.unread ?? 0,
       });
@@ -97,13 +75,10 @@ export default function AdminDashboard({ token: tokenProp }) {
   const fetchChart = async () => {
     try {
       const res = await axios.get(`${API}/chart/daily`);
-      const payload = unwrap(res);
-      // payload expected to be array of { _id, count }
+      const payload = unwrap(res) ?? [];
       setChartData(Array.isArray(payload) ? payload : []);
     } catch (err) {
-      // If the backend doesn't implement chart, just log and continue
       if (err?.response?.status === 404) {
-        console.info("/chart/daily not found on backend; skipping chart");
         setChartData([]);
         return;
       }
@@ -112,16 +87,12 @@ export default function AdminDashboard({ token: tokenProp }) {
   };
 
   useEffect(() => {
-    // Load all dashboard data
     fetchMessages();
     fetchStats();
     fetchChart();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // -------------------------------
-  // Actions
-  // -------------------------------
   const markRead = async (id) => {
     try {
       await axios.put(`${API}/read/${id}`, {});
@@ -143,9 +114,6 @@ export default function AdminDashboard({ token: tokenProp }) {
     }
   };
 
-  // -------------------------------
-  // Logout
-  // -------------------------------
   const handleLogout = () => {
     localStorage.removeItem("token");
     delete axios.defaults.headers.common["Authorization"];
@@ -154,7 +122,6 @@ export default function AdminDashboard({ token: tokenProp }) {
 
   return (
     <div className="flex min-h-screen bg-gray-900 text-white">
-      {/* ────────── SIDEBAR ────────── */}
       <motion.aside
         initial={{ x: -200 }}
         animate={{ x: openSidebar ? 0 : -200 }}
@@ -183,9 +150,7 @@ export default function AdminDashboard({ token: tokenProp }) {
         </button>
       </motion.aside>
 
-      {/* ────────── MAIN AREA ────────── */}
       <div className="flex-1 ml-0 md:ml-64 p-6">
-        {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <button
             className="md:hidden bg-gray-700 p-2 rounded"
@@ -197,7 +162,6 @@ export default function AdminDashboard({ token: tokenProp }) {
           <h1 className="text-3xl font-bold">Dashboard</h1>
         </div>
 
-        {/* ────────── STATS CARDS ────────── */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-10">
           {[
             { label: "Total Messages", value: stats.total },
@@ -217,10 +181,8 @@ export default function AdminDashboard({ token: tokenProp }) {
           ))}
         </div>
 
-        {/* ────────── CHART ────────── */}
         <div className="bg-gray-800 p-6 rounded-xl shadow-lg mb-10">
           <h2 className="text-xl mb-4 font-semibold">Messages Per Day</h2>
-
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={chartData}>
               <CartesianGrid strokeDasharray="3 3" />
@@ -232,7 +194,6 @@ export default function AdminDashboard({ token: tokenProp }) {
           </ResponsiveContainer>
         </div>
 
-        {/* ────────── MESSAGES TABLE ────────── */}
         <div className="bg-gray-800 p-4 rounded-xl shadow-lg overflow-x-auto">
           <table className="min-w-full">
             <thead className="bg-gray-700">

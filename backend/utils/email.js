@@ -5,11 +5,9 @@ function validateEnv() {
   const missing = required.filter(k => !process.env[k]);
   if (missing.length) {
     console.warn('Missing email env vars:', missing);
-    // we still allow creation of transporter but will likely fail to connect
   }
 }
 
-// Create transporter from env; do NOT default to localhost implicitly
 function createTransporter() {
   validateEnv();
 
@@ -29,13 +27,7 @@ function createTransporter() {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASS,
     },
-    logger: false,
-    debug: false,
-    // optional TLS settings:
-    tls: {
-      // do not fail on invalid certs in some environments (use cautiously)
-      rejectUnauthorized: process.env.EMAIL_REJECT_UNAUTHORIZED !== 'false',
-    },
+    tls: { rejectUnauthorized: process.env.EMAIL_REJECT_UNAUTHORIZED !== 'false' },
   });
 }
 
@@ -58,7 +50,6 @@ async function sendContactEmail(contact) {
     html,
   };
 
-  // Return the transporter.sendMail Promise so caller can log result if desired
   return transporter.sendMail(mailOptions);
 }
 

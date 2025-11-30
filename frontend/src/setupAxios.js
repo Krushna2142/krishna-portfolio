@@ -11,7 +11,6 @@ export function initAxiosFromLocalStorage() {
   }
 }
 
-// Call this after a successful login to persist token and set header
 export function setAxiosToken(token) {
   if (token) {
     localStorage.setItem("token", token);
