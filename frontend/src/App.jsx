@@ -17,22 +17,12 @@ import Contact from './pages/Contact';
 import AdminLogin from './admin/AdminLogin';
 import AdminDashboard from './admin/AdminDashboard';
 
-function PublicHome() {
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white">
-      <div className="p-8 bg-gray-800 rounded">
-        <h1 className="text-2xl font-bold">Welcome</h1>
-        <p className="text-sm text-gray-300 mt-2">This is the public home. Replace PublicHome with your real component if available.</p>
-      </div>
-    </div>
-  );
-}
 function App() {
   return (
     <Router>
       <div className="bg-white dark:bg-gray-900 text-black dark:text-white min-h-screen flex flex-col">
         <Navbar />
-      <ToastContainer position="top-right" autoClose={3000} />
+        <ToastContainer position="top-right" autoClose={3000} />
         <div className="flex-grow">
           <Routes>
             {/* User Routes */}
@@ -42,18 +32,18 @@ function App() {
             <Route path="/services" element={<Services />} />
             <Route path="/projects" element={<Projects />} />
             <Route path="/contact" element={<Contact />} />
-            <Route path="/" element={<YourPublicHome />} />
-        <Route path="/admin/login" element={<AdminLogin />} />
 
-        {/* Protect the dashboard route */}
-        <Route
-          path="/admin/dashboard"
-          element={
-            <ProtectedRoute>
-              <AdminDashboard />
-            </ProtectedRoute>
-          }
-        />
+            <Route path="/admin/login" element={<AdminLogin />} />
+
+            {/* Protect the dashboard route */}
+            <Route
+              path="/admin/dashboard"
+              element={
+                <ProtectedRoute>
+                  <AdminDashboard />
+                </ProtectedRoute>
+              }
+            />
           </Routes>
         </div>
 
