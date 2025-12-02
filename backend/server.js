@@ -15,6 +15,12 @@ const app = express();
 const server = http.createServer(app);
 connectDB();
 
+// --------- VALIDATE REQUIRED ENV VARS ---------
+if (!process.env.JWT_SECRET_KEY) {
+  console.error("FATAL: JWT_SECRET_KEY environment variable is not set");
+  process.exit(1);
+}
+
 // --------- FIXED ORIGINS ---------
 const allowedOrigins = [
   "https://krishna-portfolio-peach-one.vercel.app",

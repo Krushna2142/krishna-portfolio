@@ -227,7 +227,6 @@ exports.exportCSV = async (req, res) => {
   try {
     const searchQuery = req.query.q || "";
     const readFilter = req.query.read;
-    const unreadFilter = req.query.unread;
 
     // Build filter object
     const filter = {};
@@ -241,13 +240,13 @@ exports.exportCSV = async (req, res) => {
       ];
     }
 
-    // Read/unread filter
-    if (unreadFilter === "true") {
-      filter.read = false;
-    } else if (readFilter === "true") {
-      filter.read = true;
-    } else if (readFilter === "false") {
-      filter.read = false;
+    // Read/unread filter - consistent with getPaginated logic
+    if (readFilter !== undefined && readFilter !== "") {
+      if (readFilter === "true" || readFilter === "read") {
+        filter.read = true;
+      } else if (readFilter === "false" || readFilter === "unread") {
+        filter.read = false;
+      }
     }
 
     const contacts = await Contact.find(filter).sort({ createdAt: -1 });
