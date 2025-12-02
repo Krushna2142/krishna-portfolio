@@ -1,6 +1,18 @@
 // backend/controllers/contactController.js
 const Contact = require("../models/Contact");
 const { sendMail } = require("../utils/email");
+const socketModule = require("../utils/socket");
+
+// Configuration constants
+const DEFAULT_PAGE = 1;
+const DEFAULT_PER_PAGE = 10;
+const MAX_PER_PAGE = 100;
+const CSV_HEADERS = "_id,name,email,message,read,createdAt,updatedAt";
+
+// Helper function to escape special regex characters
+const escapeRegex = (str) => {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+};
 
 exports.sendMessage = async (req, res) => {
   try {
@@ -60,8 +72,9 @@ exports.sendMessage = async (req, res) => {
     }
 
     // Emit Socket.IO event for real-time updates to authenticated admin clients
-    if (global.io) {
-      global.io.emit("message:created", saved);
+    const io = socketModule.getIO();
+    if (io) {
+      io.emit("message:created", saved);
     }
 
     return res.status(200).json({
@@ -100,8 +113,9 @@ exports.markRead = async (req, res) => {
     }
 
     // Emit Socket.IO event for real-time updates
-    if (global.io) {
-      global.io.emit("message:updated", updated);
+    const io = socketModule.getIO();
+    if (io) {
+      io.emit("message:updated", updated);
     }
 
     return res.status(200).json({ ok: true, message: "Marked as read" });
@@ -121,8 +135,9 @@ exports.deleteMessage = async (req, res) => {
     }
 
     // Emit Socket.IO event for real-time updates
-    if (global.io) {
-      global.io.emit("message:deleted", { _id: id });
+    const io = socketModule.getIO();
+    if (io) {
+      io.emit("message:deleted", { _id: id });
     }
 
     return res.status(200).json({ ok: true, message: "Deleted" });
@@ -181,8 +196,8 @@ exports.getDailyChart = async (req, res) => {
 exports.getPaginated = async (req, res) => {
   try {
     // Parse and validate query parameters
-    const page = Math.max(1, parseInt(req.query.page) || 1);
-    const perPage = Math.max(1, Math.min(100, parseInt(req.query.perPage) || 10));
+    const page = Math.max(DEFAULT_PAGE, parseInt(req.query.page) || DEFAULT_PAGE);
+    const perPage = Math.max(1, Math.min(MAX_PER_PAGE, parseInt(req.query.perPage) || DEFAULT_PER_PAGE));
     const searchQuery = req.query.q || "";
     const readFilter = req.query.read;
 
@@ -191,7 +206,8 @@ exports.getPaginated = async (req, res) => {
 
     // Search filter: match name, email, or message (case-insensitive)
     if (searchQuery) {
-      const searchRegex = new RegExp(searchQuery, "i");
+      const escapedQuery = escapeRegex(searchQuery);
+      const searchRegex = new RegExp(escapedQuery, "i");
       filter.$or = [
         { name: searchRegex },
         { email: searchRegex },
@@ -243,7 +259,8 @@ exports.exportCSV = async (req, res) => {
     const filter = {};
 
     if (searchQuery) {
-      const searchRegex = new RegExp(searchQuery, "i");
+      const escapedQuery = escapeRegex(searchQuery);
+      const searchRegex = new RegExp(escapedQuery, "i");
       filter.$or = [
         { name: searchRegex },
         { email: searchRegex },
@@ -263,7 +280,6 @@ exports.exportCSV = async (req, res) => {
     const contacts = await Contact.find(filter).sort({ createdAt: -1 });
 
     // Build CSV content
-    const headers = "_id,name,email,message,read,createdAt,updatedAt";
     const rows = contacts.map((contact) => {
       // Escape fields for CSV (handle commas and quotes)
       const escapeCSV = (field) => {
@@ -286,7 +302,7 @@ exports.exportCSV = async (req, res) => {
       ].join(",");
     });
 
-    const csv = [headers, ...rows].join("\n");
+    const csv = [CSV_HEADERS, ...rows].join("\n");
 
     // Set CSV response headers
     const timestamp = new Date().toISOString().replace(/[:.]/g, "-");

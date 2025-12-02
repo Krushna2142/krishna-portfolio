@@ -10,6 +10,7 @@ const connectDB = require("./config/db");
 const contactRoutes = require("./routes/contactRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const adminAuth = require("./middleware/auth");
+const socketModule = require("./utils/socket");
 
 const app = express();
 const server = http.createServer(app);
@@ -86,7 +87,7 @@ io.use((socket, next) => {
     }
 
     // Verify JWT token using the same secret as HTTP auth
-    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY || process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
     
     // Attach decoded user info to socket
     socket.data.user = decoded;
@@ -105,8 +106,8 @@ io.on("connection", (socket) => {
   });
 });
 
-// Make io globally accessible for controllers
-global.io = io;
+// Store Socket.IO instance for use in controllers
+socketModule.setIO(io);
 
 // --------- Start Server ---------
 const PORT = process.env.PORT || 5000;
