@@ -19,6 +19,12 @@ exports.sendMessage = async (req, res) => {
       read: false,
     });
 
+    // Emit socket event for new message
+    const io = req.app.get("io");
+    if (io) {
+      io.emit("message:created", saved);
+    }
+
     // Admin notification email
     try {
       await sendMail({
@@ -84,7 +90,14 @@ exports.getAll = async (req, res) => {
 exports.markRead = async (req, res) => {
   try {
     const id = req.params.id;
-    await Contact.findByIdAndUpdate(id, { read: true });
+    const updated = await Contact.findByIdAndUpdate(id, { read: true }, { new: true });
+    
+    // Emit socket event for message update
+    const io = req.app.get("io");
+    if (io && updated) {
+      io.emit("message:updated", updated);
+    }
+    
     return res.status(200).json({ ok: true, message: "Marked as read" });
   } catch (err) {
     console.error(err);
@@ -95,7 +108,14 @@ exports.markRead = async (req, res) => {
 exports.deleteMessage = async (req, res) => {
   try {
     const id = req.params.id;
-    await Contact.findByIdAndDelete(id);
+    const deleted = await Contact.findByIdAndDelete(id);
+    
+    // Emit socket event for message deletion
+    const io = req.app.get("io");
+    if (io && deleted) {
+      io.emit("message:deleted", { id });
+    }
+    
     return res.status(200).json({ ok: true, message: "Deleted" });
   } catch (err) {
     console.error(err);
@@ -144,6 +164,121 @@ exports.getDailyChart = async (req, res) => {
     return res.status(200).json({ ok: true, payload: chart });
   } catch (err) {
     console.error(err);
+    return res.status(500).json({ ok: false, error: "Server error" });
+  }
+};
+
+// Paginated contact list with search and filters
+exports.getPaginated = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const perPage = parseInt(req.query.perPage) || 10;
+    const searchQuery = req.query.q || "";
+    const readFilter = req.query.read;
+
+    // Build filter object
+    const filter = {};
+
+    // Search filter (case-insensitive match in name, email, or message)
+    if (searchQuery) {
+      filter.$or = [
+        { name: { $regex: searchQuery, $options: "i" } },
+        { email: { $regex: searchQuery, $options: "i" } },
+        { message: { $regex: searchQuery, $options: "i" } },
+      ];
+    }
+
+    // Read/unread filter
+    if (readFilter !== undefined && readFilter !== "") {
+      if (readFilter === "true" || readFilter === "read") {
+        filter.read = true;
+      } else if (readFilter === "false" || readFilter === "unread") {
+        filter.read = false;
+      }
+    }
+
+    const skip = (page - 1) * perPage;
+    const total = await Contact.countDocuments(filter);
+    const docs = await Contact.find(filter)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(perPage);
+
+    const totalPages = Math.ceil(total / perPage);
+
+    return res.status(200).json({
+      ok: true,
+      payload: {
+        docs,
+        total,
+        page,
+        perPage,
+        totalPages,
+      },
+    });
+  } catch (err) {
+    console.error("getPaginated error:", err);
+    return res.status(500).json({ ok: false, error: "Server error" });
+  }
+};
+
+// Export contacts as CSV with filters
+exports.exportCSV = async (req, res) => {
+  try {
+    const searchQuery = req.query.q || "";
+    const readFilter = req.query.read;
+
+    // Build filter object
+    const filter = {};
+
+    // Search filter
+    if (searchQuery) {
+      filter.$or = [
+        { name: { $regex: searchQuery, $options: "i" } },
+        { email: { $regex: searchQuery, $options: "i" } },
+        { message: { $regex: searchQuery, $options: "i" } },
+      ];
+    }
+
+    // Read/unread filter - consistent with getPaginated logic
+    if (readFilter !== undefined && readFilter !== "") {
+      if (readFilter === "true" || readFilter === "read") {
+        filter.read = true;
+      } else if (readFilter === "false" || readFilter === "unread") {
+        filter.read = false;
+      }
+    }
+
+    const contacts = await Contact.find(filter).sort({ createdAt: -1 });
+
+    // Build CSV content
+    const csvRows = [];
+    csvRows.push("ID,Name,Email,Subject,Message,Read,Created At");
+
+    contacts.forEach((contact) => {
+      const row = [
+        contact._id.toString(),
+        `"${(contact.name || "").replace(/"/g, '""')}"`,
+        `"${(contact.email || "").replace(/"/g, '""')}"`,
+        `"${(contact.subject || "").replace(/"/g, '""')}"`,
+        `"${(contact.message || "").replace(/"/g, '""')}"`,
+        contact.read ? "Yes" : "No",
+        new Date(contact.createdAt).toISOString(),
+      ];
+      csvRows.push(row.join(","));
+    });
+
+    const csvContent = csvRows.join("\n");
+    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+
+    res.setHeader("Content-Type", "text/csv; charset=utf-8");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename=contacts_${timestamp}.csv`
+    );
+    return res.status(200).send(csvContent);
+  } catch (err) {
+    console.error("exportCSV error:", err);
     return res.status(500).json({ ok: false, error: "Server error" });
   }
 };

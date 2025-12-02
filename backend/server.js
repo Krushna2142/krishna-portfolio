@@ -1,6 +1,9 @@
 // backend/server.js
 const express = require("express");
 const cors = require("cors");
+const http = require("http");
+const { Server } = require("socket.io");
+const jwt = require("jsonwebtoken");
 require("dotenv").config();
 
 const connectDB = require("./config/db");
@@ -9,7 +12,14 @@ const adminRoutes = require("./routes/adminRoutes");
 const adminAuth = require("./middleware/auth");
 
 const app = express();
+const server = http.createServer(app);
 connectDB();
+
+// --------- VALIDATE REQUIRED ENV VARS ---------
+if (!process.env.JWT_SECRET_KEY) {
+  console.error("FATAL: JWT_SECRET_KEY environment variable is not set");
+  process.exit(1);
+}
 
 // --------- FIXED ORIGINS ---------
 const allowedOrigins = [
@@ -17,6 +27,48 @@ const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:3000",
 ];
+
+// --------- SOCKET.IO SETUP ---------
+const io = new Server(server, {
+  cors: {
+    origin: function (origin, callback) {
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      return callback(new Error("CORS blocked: " + origin));
+    },
+    credentials: true,
+  },
+});
+
+// Socket.IO JWT Authentication Middleware
+io.use((socket, next) => {
+  try {
+    const token = socket.handshake.auth.token;
+    if (!token) {
+      return next(new Error("Authentication error: No token provided"));
+    }
+    
+    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+    socket.data.user = decoded;
+    next();
+  } catch (err) {
+    console.error("Socket auth error:", err.message);
+    return next(new Error("Authentication error: Invalid token"));
+  }
+});
+
+io.on("connection", (socket) => {
+  console.log("Authenticated client connected:", socket.data.user?.username);
+  
+  socket.on("disconnect", () => {
+    console.log("Client disconnected:", socket.data.user?.username);
+  });
+});
+
+// Make io accessible to routes
+app.set("io", io);
 
 // --------- GLOBAL CORS ---------
 app.use(
@@ -56,6 +108,6 @@ app.get("/health", (req, res) => {
 
 // --------- Start Server ---------
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log("Server running on port", PORT);
 });
