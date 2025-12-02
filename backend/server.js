@@ -1,57 +1,68 @@
-const express = require("express");
-const cors = require("cors");
-const dotenv = require("dotenv");
-dotenv.config();
-const connectDB = require("./config/db");
-const adminRoutes = require("./routes/adminRoutes");
-const contactRoutes = require("./routes/contactRoutes");
+// Replace your existing server startup file with this (or integrate the changes)
+// Ensure you run `npm install cors` (or `yarn add cors`) before redeploying.
+
+const express = require('express');
+const cors = require('cors');
+require('dotenv').config();
+const connectDB = require('./config/db'); // keep your db connection logic
+const contactRoutes = require('./routes/contactRoutes');
+// const adminRoutes = require('./routes/adminRoutes'); // if you have more routes
 
 const app = express();
 
-// Use an environment variable for the frontend origin to avoid hardcoding.
-// In Render, set FRONTEND_ORIGIN to: https://krishna-portfolio-peach-one.vercel.app
-const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN || "https://krishna-portfolio-peach-one.vercel.app";
+// Connect to DB
+connectDB().catch(err => {
+  console.error('connectDB error:', err);
+  // don't crash the process here; logging is fine
+});
 
-// CORS configuration
-const corsOptions = {
-  origin: (origin, callback) => {
-    // Allow same-origin requests (origin may be undefined for server-to-server)
-    if (!origin || origin === FRONTEND_ORIGIN) return callback(null, true);
-    // For troubleshooting you could allow all origins by returning callback(null, true),
-    // but DO NOT use that in production. Prefer explicitly listing your frontend.
-    return callback(new Error("Not allowed by CORS"));
-  },
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-  credentials: true,
-};
-
-// Apply CORS middleware for all routes BEFORE routes are registered
-app.use(cors(corsOptions));
-
-// If you still need to match preflight for every path explicitly, use a valid regex.
-// (Usually unnecessary when app.use(cors()) is present)
-app.options(/.*/, cors(corsOptions)); // valid pattern, not '*'
-
-// Parse JSON bodies
+// parse JSON bodies
 app.use(express.json());
 
-// Optional: lightweight request logger for debugging (safe to keep)
+// CORS configuration
+// Set FRONTEND_ORIGIN in Render to: https://krishna-portfolio-peach-one.vercel.app
+const frontendOrigin = process.env.FRONTEND_ORIGIN || 'https://krishna-portfolio-peach-one.vercel.app';
+
+// If you need multiple origins, set FRONTEND_ORIGIN to a comma-separated list and parse it here.
+const allowedOrigins = frontendOrigin.split(',').map(o => o.trim());
+
+// cors options that will be applied before routes
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like Postman, curl or server-to-server)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      return callback(null, true);
+    }
+    return callback(new Error('CORS policy: This origin is not allowed: ' + origin));
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
+  credentials: true, // allow cookies / credentials if needed
+  optionsSuccessStatus: 204,
+};
+
+// Apply CORS middleware globally (must be before your routes)
+app.use(cors(corsOptions));
+
+// Ensure preflight OPTIONS are handled for all routes
+app.options('*', cors(corsOptions));
+
+// (Optional) A small middleware to add headers for older browsers or if you need to debug
 app.use((req, res, next) => {
-  console.log("REQ:", { method: req.method, url: req.originalUrl, origin: req.headers.origin });
+  res.header('Access-Control-Allow-Origin', req.headers.origin || allowedOrigins[0]);
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  // remove or set to 'true' only if you require credentials
+  // res.header('Access-Control-Allow-Credentials', 'true');
   next();
 });
 
-// Connect DB
-connectDB();
+// Mount routes (after CORS)
+app.use('/api/contact', contactRoutes);
+// app.use('/api/admin', adminRoutes);
 
-// Register routes AFTER cors middleware
-app.use("/api/admin", adminRoutes);
-app.use("/api/contact", contactRoutes);
-
-app.get("/", (req, res) => {
-  res.send("Backend Running...");
+const PORT = process.env.PORT || process.env.SERVER_PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
-
-const PORT = process.env.SERVER_PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
