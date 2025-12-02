@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const socketModule = require('../utils/socket');
 
 // Adjust this import to match your actual Mongoose model file/name
 // If your model is named Message or ContactModel, change the require path accordingly.
@@ -33,6 +34,13 @@ router.delete('/messages/:id', async (req, res) => {
   try {
     const deleted = await Contact.findByIdAndDelete(req.params.id);
     if (!deleted) return res.status(404).json({ success: false, message: 'Message not found' });
+    
+    // Emit Socket.IO event for real-time updates
+    const io = socketModule.getIO();
+    if (io) {
+      io.emit('message:deleted', { _id: req.params.id });
+    }
+    
     res.json({ success: true, message: 'Message deleted' });
   } catch (err) {
     console.error('Error deleting message:', err);
@@ -49,6 +57,13 @@ router.post('/messages/:id/read', async (req, res) => {
       { new: true }
     );
     if (!updated) return res.status(404).json({ success: false, message: 'Message not found' });
+    
+    // Emit Socket.IO event for real-time updates
+    const io = socketModule.getIO();
+    if (io) {
+      io.emit('message:updated', updated);
+    }
+    
     res.json({ success: true, data: updated });
   } catch (err) {
     console.error('Error marking message read:', err);

@@ -6,6 +6,12 @@ const auth = require("../middleware/auth");
 
 router.post("/", controller.sendMessage);
 
+// Paginated GET endpoint with search/filter (protected by auth)
+router.get("/", auth, controller.getPaginated);
+
+// CSV export endpoint (protected by auth)
+router.get("/export", auth, controller.exportCSV);
+
 // admin routes protected by auth
 router.get("/all", auth, controller.getAll);
 router.get("/stats", auth, controller.getStats);

@@ -1,6 +1,18 @@
 // backend/controllers/contactController.js
 const Contact = require("../models/Contact");
 const { sendMail } = require("../utils/email");
+const socketModule = require("../utils/socket");
+
+// Configuration constants
+const DEFAULT_PAGE = 1;
+const DEFAULT_PER_PAGE = 10;
+const MAX_PER_PAGE = 100;
+const CSV_HEADERS = "_id,name,email,message,read,createdAt,updatedAt";
+
+// Helper function to escape special regex characters
+const escapeRegex = (str) => {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+};
 
 exports.sendMessage = async (req, res) => {
   try {
@@ -59,6 +71,12 @@ exports.sendMessage = async (req, res) => {
       // ignore error, don't block response
     }
 
+    // Emit Socket.IO event for real-time updates to authenticated admin clients
+    const io = socketModule.getIO();
+    if (io) {
+      io.emit("message:created", saved);
+    }
+
     return res.status(200).json({
       ok: true,
       message: "Message sent successfully",
@@ -84,7 +102,22 @@ exports.getAll = async (req, res) => {
 exports.markRead = async (req, res) => {
   try {
     const id = req.params.id;
-    await Contact.findByIdAndUpdate(id, { read: true });
+    const updated = await Contact.findByIdAndUpdate(
+      id, 
+      { read: true }, 
+      { new: true }
+    );
+    
+    if (!updated) {
+      return res.status(404).json({ ok: false, error: "Message not found" });
+    }
+
+    // Emit Socket.IO event for real-time updates
+    const io = socketModule.getIO();
+    if (io) {
+      io.emit("message:updated", updated);
+    }
+
     return res.status(200).json({ ok: true, message: "Marked as read" });
   } catch (err) {
     console.error(err);
@@ -95,7 +128,18 @@ exports.markRead = async (req, res) => {
 exports.deleteMessage = async (req, res) => {
   try {
     const id = req.params.id;
-    await Contact.findByIdAndDelete(id);
+    const deleted = await Contact.findByIdAndDelete(id);
+    
+    if (!deleted) {
+      return res.status(404).json({ ok: false, error: "Message not found" });
+    }
+
+    // Emit Socket.IO event for real-time updates
+    const io = socketModule.getIO();
+    if (io) {
+      io.emit("message:deleted", { _id: id });
+    }
+
     return res.status(200).json({ ok: true, message: "Deleted" });
   } catch (err) {
     console.error(err);
@@ -144,6 +188,133 @@ exports.getDailyChart = async (req, res) => {
     return res.status(200).json({ ok: true, payload: chart });
   } catch (err) {
     console.error(err);
+    return res.status(500).json({ ok: false, error: "Server error" });
+  }
+};
+
+// Paginated GET endpoint with search and filter
+exports.getPaginated = async (req, res) => {
+  try {
+    // Parse and validate query parameters
+    const page = Math.max(DEFAULT_PAGE, parseInt(req.query.page) || DEFAULT_PAGE);
+    const perPage = Math.max(1, Math.min(MAX_PER_PAGE, parseInt(req.query.perPage) || DEFAULT_PER_PAGE));
+    const searchQuery = req.query.q || "";
+    const readFilter = req.query.read;
+
+    // Build MongoDB query filter
+    const filter = {};
+
+    // Search filter: match name, email, or message (case-insensitive)
+    if (searchQuery) {
+      const escapedQuery = escapeRegex(searchQuery);
+      const searchRegex = new RegExp(escapedQuery, "i");
+      filter.$or = [
+        { name: searchRegex },
+        { email: searchRegex },
+        { message: searchRegex },
+      ];
+    }
+
+    // Read/unread filter
+    if (readFilter !== undefined && readFilter !== null && readFilter !== "") {
+      if (readFilter === "true" || readFilter === "read") {
+        filter.read = true;
+      } else if (readFilter === "false" || readFilter === "unread") {
+        filter.read = false;
+      }
+    }
+
+    // Get total count and paginated documents
+    const total = await Contact.countDocuments(filter);
+    const docs = await Contact.find(filter)
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * perPage)
+      .limit(perPage);
+
+    const totalPages = Math.ceil(total / perPage);
+
+    return res.status(200).json({
+      ok: true,
+      payload: {
+        docs,
+        total,
+        page,
+        perPage,
+        totalPages,
+      },
+    });
+  } catch (err) {
+    console.error("getPaginated error:", err);
+    return res.status(500).json({ ok: false, error: "Server error" });
+  }
+};
+
+// CSV Export endpoint
+exports.exportCSV = async (req, res) => {
+  try {
+    const searchQuery = req.query.q || "";
+    const readFilter = req.query.read;
+
+    // Build the same filter as pagination
+    const filter = {};
+
+    if (searchQuery) {
+      const escapedQuery = escapeRegex(searchQuery);
+      const searchRegex = new RegExp(escapedQuery, "i");
+      filter.$or = [
+        { name: searchRegex },
+        { email: searchRegex },
+        { message: searchRegex },
+      ];
+    }
+
+    if (readFilter !== undefined && readFilter !== null && readFilter !== "") {
+      if (readFilter === "true" || readFilter === "read") {
+        filter.read = true;
+      } else if (readFilter === "false" || readFilter === "unread") {
+        filter.read = false;
+      }
+    }
+
+    // Fetch all matching documents (not paginated)
+    const contacts = await Contact.find(filter).sort({ createdAt: -1 });
+
+    // Build CSV content
+    const rows = contacts.map((contact) => {
+      // Escape fields for CSV (handle commas and quotes)
+      const escapeCSV = (field) => {
+        if (field === null || field === undefined) return "";
+        const str = String(field);
+        if (str.includes(",") || str.includes('"') || str.includes("\n")) {
+          return `"${str.replace(/"/g, '""')}"`;
+        }
+        return str;
+      };
+
+      return [
+        escapeCSV(contact._id),
+        escapeCSV(contact.name),
+        escapeCSV(contact.email),
+        escapeCSV(contact.message),
+        escapeCSV(contact.read),
+        escapeCSV(contact.createdAt),
+        escapeCSV(contact.updatedAt),
+      ].join(",");
+    });
+
+    const csv = [CSV_HEADERS, ...rows].join("\n");
+
+    // Set CSV response headers
+    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+    res.setHeader("Content-Type", "text/csv; charset=utf-8");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename=contacts_${timestamp}.csv`
+    );
+
+    return res.status(200).send(csv);
+  } catch (err) {
+    console.error("exportCSV error:", err);
     return res.status(500).json({ ok: false, error: "Server error" });
   }
 };
