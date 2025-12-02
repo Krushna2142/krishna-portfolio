@@ -1,17 +1,17 @@
+// backend/middleware/auth.js
 const jwt = require("jsonwebtoken");
 
-module.exports = (req, res, next) => {
-  const authHeader = req.headers.authorization;
-  if (!authHeader) return res.status(401).json({ message: "No token provided" });
-
-  const token = authHeader.split(" ")[1];
-  if (!token) return res.status(401).json({ message: "No token provided" });
-
+module.exports = function (req, res, next) {
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.admin = decoded;
+    const auth = req.headers.authorization || "";
+    const token = auth.replace(/^Bearer\s*/i, "");
+    if (!token) return res.status(401).json({ ok: false, error: "Unauthorized" });
+
+    const data = jwt.verify(token, process.env.JWT_SECRET_KEY);
+    req.admin = data;
     next();
   } catch (err) {
-    return res.status(401).json({ message: "Invalid token" });
+    console.error("Auth middleware error:", err);
+    return res.status(401).json({ ok: false, error: "Unauthorized" });
   }
 };
