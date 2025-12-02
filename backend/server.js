@@ -4,14 +4,13 @@ const cors = require('cors');
 require('dotenv').config();
 const connectDB = require('./config/db'); // adjust path as needed
 const contactRoutes = require('./routes/contactRoutes'); // public contact -> send email
-const adminRoutes = require('./routes/adminRoutes'); // <-- use your existing adminRoutes file
+const adminRoutes = require('./routes/adminRoutes'); // <-- use existing adminRoutes file
 const adminAuth = require('./middleware/auth'); // your auth middleware for admin routes
 
 const app = express();
 
 connectDB().catch(err => {
   console.error('connectDB error:', err);
-  // optionally process.exit(1) if you want to stop on DB error
 });
 
 // parse JSON bodies
@@ -81,9 +80,7 @@ app.use('/api/admin', (req, res, next) => {
 app.use('/api/admin', adminCors); // apply CORS for admin routes
 app.use('/api/admin', adminAuth, adminRoutes); // protect admin routes
 
-// Other routes...
-
-// Bind to host-provided port
+// Start server: bind to host-provided port
 const PORT = process.env.PORT || process.env.SERVER_PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
