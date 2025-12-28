@@ -16,7 +16,7 @@
     "chart.js": "^4.5.1",
     "emailjs-com": "^3.2.0",
     "file-saver": "^2.0.5",
-    "framer-motion": "^12.23.24",
+    "framer-motion": "^12.23.25",
     "lucide-react": "^0.528.0",
     "nodemailer": "^7.0.11",
     "react": "^19.1.0",
@@ -31,6 +31,7 @@
     "react-toastify": "^11.0.5",
     "react-type-animation": "^3.2.0",
     "recharts": "^3.5.1",
+    "socket.io-client": "^4.8.1",
     "tailwindcss": "^4.1.11",
     "xlsx": "^0.18.5"
   },

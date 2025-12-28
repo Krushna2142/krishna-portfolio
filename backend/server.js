@@ -1,5 +1,6 @@
 // backend/server.js
 const express = require("express");
+const http = require("http");
 const cors = require("cors");
 require("dotenv").config();
 
@@ -11,51 +12,58 @@ const adminAuth = require("./middleware/auth");
 const app = express();
 connectDB();
 
-// --------- FIXED ORIGINS ---------
-const allowedOrigins = [
-  "https://krishna-portfolio-peach-one.vercel.app",
-  "http://localhost:5173",
-  "http://localhost:3000",
-];
-
-// --------- GLOBAL CORS ---------
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      // Allow no-origin (mobile apps, curl, etc)
-      if (!origin) return callback(null, true);
-
-      if (allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      }
-
-      return callback(new Error("CORS blocked: " + origin));
-    },
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-    credentials: true,
-  })
-);
-
-// --------- FIX: Allow preflight everywhere ---------
-app.options("*", cors());
-
-// --------- Body Parser ---------
 app.use(express.json());
 
-// --------- PUBLIC CONTACT ROUTE ---------
+// Simple CORS (expand origin list as needed)
+const allowedOrigins = [
+  process.env.FRONTEND_ORIGIN,
+  process.env.ADMIN_FRONTEND_ORIGIN,
+  "http://localhost:3000",
+  "http://localhost:5173",
+].filter(Boolean);
+
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    return callback(new Error("CORS not allowed: " + origin));
+  },
+  credentials: true,
+}));
+
+app.options("/*", cors());
+
+// Routes
 app.use("/api/contact", contactRoutes);
-
-// --------- ADMIN ROUTES ---------
 app.use("/api/admin", adminAuth, adminRoutes);
+app.get("/health", (req, res) => res.json({ status: "ok" }));
 
-// --------- Health Check ---------
-app.get("/health", (req, res) => {
-  res.json({ status: "ok" });
+// Start server with socket.io
+const PORT = process.env.SERVER_PORT || process.env.PORT || 5000;
+const server = http.createServer(app);
+
+// init socket.io
+const { Server } = require("socket.io");
+const io = new Server(server, {
+  cors: {
+    origin: allowedOrigins.length ? allowedOrigins : "*",
+    methods: ["GET", "POST"],
+    credentials: true,
+  },
 });
 
-// --------- Start Server ---------
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log("Server running on port", PORT);
+// Make io available globally to controllers via global.io
+global.io = io;
+
+io.on("connection", (socket) => {
+  console.log("Socket connected:", socket.id);
+
+  socket.on("disconnect", () => {
+    console.log("Socket disconnected:", socket.id);
+  });
+});
+
+server.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+  console.log("Allowed origins:", allowedOrigins);
 });
