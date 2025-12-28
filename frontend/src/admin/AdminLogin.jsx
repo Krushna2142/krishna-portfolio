@@ -9,32 +9,33 @@ export default function AdminLogin() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const API = "https://krishna-portfolio-backend-ined.onrender.com/api/admin";
+  const API_BASE =
+    import.meta.env.VITE_BACKEND_URL ||
+    "https://krishna-portfolio-backend-ined.onrender.com";
 
   const handleSubmit = async (e) => {
-    if (e && e.preventDefault) e.preventDefault();
+    e.preventDefault();
     setLoading(true);
+
     try {
       const { data } = await axios.post(
-        `${API}/login`,
+        `${API_BASE}/api/admin/login`,
         { username, password },
         { headers: { "Content-Type": "application/json" } }
       );
 
       if (!data?.token) {
-        alert(data?.message || "Login failed: no token returned");
-        setLoading(false);
+        alert("Login failed");
         return;
       }
 
-      // Persist token and set axios Authorization header immediately
+      // Save token + set axios header
       setAxiosToken(data.token);
 
-      // Navigate to dashboard (client-side)
+      // Redirect securely
       navigate("/admin/dashboard", { replace: true });
     } catch (err) {
-      console.error("Login error:", err);
-      alert(err?.response?.data?.message || "Login failed");
+      alert(err?.response?.data?.message || "Invalid credentials");
     } finally {
       setLoading(false);
     }
@@ -47,29 +48,27 @@ export default function AdminLogin() {
 
         <form onSubmit={handleSubmit}>
           <input
-            name="username"
             type="text"
             placeholder="Username"
-            autoComplete="username"
             className="w-full mb-4 p-2 rounded bg-gray-700"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
+            required
           />
 
           <input
-            name="password"
             type="password"
             placeholder="Password"
-            autoComplete="current-password"
             className="w-full mb-4 p-2 rounded bg-gray-700"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            required
           />
 
           <button
             type="submit"
-            className="w-full bg-blue-600 p-2 rounded hover:bg-blue-500 disabled:opacity-60"
             disabled={loading}
+            className="w-full bg-blue-600 p-2 rounded hover:bg-blue-500 disabled:opacity-60"
           >
             {loading ? "Logging in..." : "Login"}
           </button>

@@ -1,4 +1,3 @@
-// backend/server.js
 const express = require("express");
 const http = require("http");
 const cors = require("cors");
@@ -7,7 +6,6 @@ require("dotenv").config();
 const connectDB = require("./config/db");
 const contactRoutes = require("./routes/contactRoutes");
 const adminRoutes = require("./routes/adminRoutes");
-const adminAuth = require("./middleware/auth");
 
 const app = express();
 connectDB();
@@ -21,23 +19,23 @@ const allowedOrigins = [
   "http://localhost:5173",
 ].filter(Boolean);
 
-app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin)) return callback(null, true);
-    return callback(new Error("CORS not allowed: " + origin));
-  },
-  credentials: true,
-}));
-
-// ❌ REMOVE app.options COMPLETELY
+app.use(
+  cors({
+    origin(origin, callback) {
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin)) return callback(null, true);
+      return callback(new Error("CORS blocked: " + origin));
+    },
+    credentials: true,
+  })
+);
 
 // Routes
 app.use("/api/contact", contactRoutes);
-app.use("/api/admin", adminAuth, adminRoutes);
-app.get("/health", (req, res) => res.json({ status: "ok" }));
+app.use("/api/admin", adminRoutes);
+app.get("/health", (_, res) => res.json({ status: "ok" }));
 
-const PORT = process.env.SERVER_PORT || process.env.PORT || 5000;
+const PORT = process.env.PORT || 5000;
 const server = http.createServer(app);
 
 // Socket.IO
@@ -45,7 +43,6 @@ const { Server } = require("socket.io");
 const io = new Server(server, {
   cors: {
     origin: allowedOrigins.length ? allowedOrigins : "*",
-    methods: ["GET", "POST"],
     credentials: true,
   },
 });
@@ -54,12 +51,9 @@ global.io = io;
 
 io.on("connection", (socket) => {
   console.log("Socket connected:", socket.id);
-  socket.on("disconnect", () => {
-    console.log("Socket disconnected:", socket.id);
-  });
+  socket.on("disconnect", () => console.log("Socket disconnected:", socket.id));
 });
 
 server.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-  console.log("Allowed origins:", allowedOrigins);
+  console.log(`✅ Server running on port ${PORT}`);
 });
