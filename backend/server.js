@@ -14,7 +14,6 @@ connectDB();
 
 app.use(express.json());
 
-// Simple CORS (expand origin list as needed)
 const allowedOrigins = [
   process.env.FRONTEND_ORIGIN,
   process.env.ADMIN_FRONTEND_ORIGIN,
@@ -31,6 +30,7 @@ app.use(cors({
   credentials: true,
 }));
 
+// ✅ FIXED HERE
 app.options("/*", cors());
 
 // Routes
@@ -38,11 +38,10 @@ app.use("/api/contact", contactRoutes);
 app.use("/api/admin", adminAuth, adminRoutes);
 app.get("/health", (req, res) => res.json({ status: "ok" }));
 
-// Start server with socket.io
 const PORT = process.env.SERVER_PORT || process.env.PORT || 5000;
 const server = http.createServer(app);
 
-// init socket.io
+// Socket.IO
 const { Server } = require("socket.io");
 const io = new Server(server, {
   cors: {
@@ -52,12 +51,10 @@ const io = new Server(server, {
   },
 });
 
-// Make io available globally to controllers via global.io
 global.io = io;
 
 io.on("connection", (socket) => {
   console.log("Socket connected:", socket.id);
-
   socket.on("disconnect", () => {
     console.log("Socket disconnected:", socket.id);
   });
