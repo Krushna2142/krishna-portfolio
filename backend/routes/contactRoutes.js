@@ -2,13 +2,9 @@ const router = require("express").Router();
 const c = require("../controllers/contactController");
 const auth = require("../middleware/auth");
 
-router.post("/", c.sendMessage);
-
-router.get("/", auth, c.getPaginated);
-router.get("/stats", auth, c.getStats);
-router.get("/chart/daily", auth, c.getDailyChart);
+router.post("/", c.create);
+router.get("/", auth, c.list);
 router.put("/read/:id", auth, c.markRead);
-router.delete("/:id", auth, c.deleteMessage);
-router.get("/export", auth, c.exportCSV);
+router.delete("/:id", auth, c.remove);
 
 module.exports = router;
