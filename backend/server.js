@@ -30,8 +30,7 @@ app.use(cors({
   credentials: true,
 }));
 
-// ✅ FIXED HERE
-app.options("/*", cors());
+// ❌ REMOVE app.options COMPLETELY
 
 // Routes
 app.use("/api/contact", contactRoutes);
